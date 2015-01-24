@@ -1,4 +1,4 @@
-#  Gnome15 - Suite of tools for the Logitech G series keyboards and headsets
+# Gnome15 - Suite of tools for the Logitech G series keyboards and headsets
 #  Copyright (C) 2010 Brett Smith <tanktarta@blueyonder.co.uk>
 #  Copyright (C) 2013 Nuno Araujo <nuno.araujo@russo79.com>
 #
@@ -21,7 +21,9 @@ import g15convert
 Set of utility methods to ease the binding between UI widgets and gconf settings
 '''
 
-def configure_colorchooser_from_gconf(gconf_client, gconf_key, widget_id, default_value, widget_tree, default_alpha = None):
+
+def configure_colorchooser_from_gconf(gconf_client, gconf_key, widget_id, default_value, widget_tree,
+                                      default_alpha=None):
     """
     Sets the color and alpha values of a colorchooser widget from a gconf key
     and initialize an event to store the value set by the user in the same
@@ -40,7 +42,7 @@ def configure_colorchooser_from_gconf(gconf_client, gconf_key, widget_id, defaul
         raise Exception("No widget with id %s." % widget_id)
     val = gconf_client.get_string(gconf_key)
     if val == None or val == "":
-        col  = g15convert.to_color(default_value)
+        col = g15convert.to_color(default_value)
     else:
         col = g15convert.to_color(g15convert.to_rgb(val))
     if default_alpha != None:
@@ -53,13 +55,15 @@ def configure_colorchooser_from_gconf(gconf_client, gconf_key, widget_id, defaul
     handler_id = widget.connect("color-set", color_changed, gconf_client, gconf_key)
     return handler_id
 
+
 def color_changed(widget, gconf_client, key):
     val = widget.get_color()
     gconf_client.set_string(key, "%d,%d,%d" % ( val.red >> 8, val.green >> 8, val.blue >> 8 ))
     if widget.get_use_alpha():
         gconf_client.set_int(key + "_opacity", widget.get_alpha() >> 8)
 
-def configure_spinner_from_gconf(gconf_client, gconf_key, widget_id, default_value, widget_tree, decimal = False):
+
+def configure_spinner_from_gconf(gconf_client, gconf_key, widget_id, default_value, widget_tree, decimal=False):
     """
     Sets the value of a spinner from a gconf key and initializes an event to
     store the spinner value in the same gconf key when changed by the user.
@@ -87,11 +91,12 @@ def configure_spinner_from_gconf(gconf_client, gconf_key, widget_id, default_val
     return handler_id
 
 
-def spinner_changed(widget, gconf_client, key, model, decimal = False):
+def spinner_changed(widget, gconf_client, key, model, decimal=False):
     if decimal:
         gconf_client.set_float(key, widget.get_value())
     else:
         gconf_client.set_int(key, int(widget.get_value()))
+
 
 def configure_combo_from_gconf(gconf_client, gconf_key, widget_id, default_value, widget_tree):
     """
@@ -136,13 +141,15 @@ def configure_combo_from_gconf(gconf_client, gconf_key, widget_id, default_value
 
     return handler_id
 
+
 def combo_box_changed(widget, gconf_client, key, model, default_value):
     if isinstance(default_value, int):
         gconf_client.set_int(key, int(model[widget.get_active()][0]))
     else:
         gconf_client.set_string(key, model[widget.get_active()][0])
 
-def configure_checkbox_from_gconf(gconf_client, gconf_key, widget_id, default_value, widget_tree, watch_changes = False):
+
+def configure_checkbox_from_gconf(gconf_client, gconf_key, widget_id, default_value, widget_tree, watch_changes=False):
     """
     Sets the state of a checkbox from a gconf key and initializes an event to
     store the current state in the same gconf key when changed by the user.
@@ -164,17 +171,20 @@ def configure_checkbox_from_gconf(gconf_client, gconf_key, widget_id, default_va
         widget.set_active(default_value)
     handler_id = widget.connect("toggled", checkbox_changed, gconf_key, gconf_client)
     if watch_changes:
-        connection_id = gconf_client.notify_add(gconf_key, boolean_conf_value_change,( widget, gconf_key ));
+        connection_id = gconf_client.notify_add(gconf_key, boolean_conf_value_change, ( widget, gconf_key ));
     return (handler_id, connection_id)
+
 
 def boolean_conf_value_change(client, connection_id, entry, args):
     widget, key = args
-    widget.set_active( entry.get_value().get_bool())
+    widget.set_active(entry.get_value().get_bool())
+
 
 def checkbox_changed(widget, key, gconf_client):
     gconf_client.set_bool(key, widget.get_active())
 
-def configure_text_from_gconf(gconf_client, gconf_key, widget_id, default_value, widget_tree, watch_changes = False):
+
+def configure_text_from_gconf(gconf_client, gconf_key, widget_id, default_value, widget_tree, watch_changes=False):
     """
     Sets the text of a text entry widget from a gconf key and initializes an
     event to store the text in the same gconf key when changed by the user.
@@ -196,17 +206,21 @@ def configure_text_from_gconf(gconf_client, gconf_key, widget_id, default_value,
         widget.set_text(default_value)
     handler_id = widget.connect("changed", text_changed, gconf_key, gconf_client)
     if watch_changes:
-        connection_id = gconf_client.notify_add(gconf_key, text_conf_value_change,( widget, gconf_key ));
+        connection_id = gconf_client.notify_add(gconf_key, text_conf_value_change, ( widget, gconf_key ));
     return (handler_id, connection_id)
+
 
 def text_conf_value_change(client, connection_id, entry, args):
     widget, key = args
-    widget.set_text( entry.get_value().get_string())
+    widget.set_text(entry.get_value().get_string())
+
 
 def text_changed(widget, key, gconf_client):
     gconf_client.set_string(key, widget.get_text())
 
-def configure_radio_from_gconf(gconf_client, gconf_key, widget_ids, gconf_values, default_value, widget_tree, watch_changes = False):
+
+def configure_radio_from_gconf(gconf_client, gconf_key, widget_ids, gconf_values, default_value, widget_tree,
+                               watch_changes=False):
     """
     Sets the checked state of a set of radioboxes from a gconf key and initializes
     an event to store their state in the same gconf key when changed by the user.
@@ -234,18 +248,22 @@ def configure_radio_from_gconf(gconf_client, gconf_key, widget_ids, gconf_values
         widget = widget_tree.get_object(widget_ids[i])
         handler_ids.append(widget.connect("toggled", radio_changed, gconf_key, gconf_client, gconf_values[i]))
         if watch_changes:
-            connection_ids.append(gconf_client.notify_add(gconf_key, radio_conf_value_change,( widget, gconf_key, gconf_values[i] )))
+            connection_ids.append(
+                gconf_client.notify_add(gconf_key, radio_conf_value_change, ( widget, gconf_key, gconf_values[i] )))
         else:
             connection_ids.append(None)
     return (handler_ids, connection_ids)
+
 
 def radio_conf_value_change(client, connection_id, entry, args):
     widget, key, gconf_value = args
     str_value = entry.get_value().get_string()
     widget.set_active(str_value == gconf_value)
 
+
 def radio_changed(widget, key, gconf_client, gconf_value):
     gconf_client.set_string(key, gconf_value)
+
 
 def configure_adjustment_from_gconf(gconf_client, gconf_key, widget_id, default_value, widget_tree):
     """
@@ -267,10 +285,12 @@ def configure_adjustment_from_gconf(gconf_client, gconf_key, widget_id, default_
             adj.set_value(entry.get_float())
     else:
         adj.set_value(default_value)
-    handler_id = adj.connect("value-changed", adjustment_changed, gconf_key, gconf_client, isinstance(default_value, int))
+    handler_id = adj.connect("value-changed", adjustment_changed, gconf_key, gconf_client,
+                             isinstance(default_value, int))
     return handler_id
 
-def adjustment_changed(adjustment, key, gconf_client, integer = True):
+
+def adjustment_changed(adjustment, key, gconf_client, integer=True):
     if integer:
         gconf_client.set_int(key, int(adjustment.get_value()))
     else:

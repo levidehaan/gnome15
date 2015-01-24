@@ -1,4 +1,4 @@
-#  Gnome15 - Suite of tools for the Logitech G series keyboards and headsets
+# Gnome15 - Suite of tools for the Logitech G series keyboards and headsets
 #  Copyright (C) 2011 Brett Smith <tanktarta@blueyonder.co.uk>
 #
 #  This program is free software: you can redistribute it and/or modify
@@ -18,7 +18,7 @@
 Manages the use of uinput to inject input events (key presses, mouse movement,
 joystick events) into the kernel.
 """
-        
+
 import logging
 import uinput
 import util.g15os as g15os
@@ -27,38 +27,39 @@ import subprocess
 from uinput.ev import *
 from threading import RLock
 from gnome15 import g15globals
+
 logger = logging.getLogger(__name__)
 
 MOUSE = "mouse"
 JOYSTICK = "joystick"
 DIGITAL_JOYSTICK = "digital-joystick"
 KEYBOARD = "keyboard"
-DEVICE_TYPES = [ MOUSE, KEYBOARD, JOYSTICK, DIGITAL_JOYSTICK ]
+DEVICE_TYPES = [MOUSE, KEYBOARD, JOYSTICK, DIGITAL_JOYSTICK]
 
 """
 Joystick calibration values
 """
-JOYSTICK_MIN    = -127
-JOYSTICK_MAX    = 127
+JOYSTICK_MIN = -127
+JOYSTICK_MAX = 127
 JOYSTICK_CENTER = 0
 
 """
 Value sent by the hardware when the joystick is at the center
 """
-DEVICE_JOYSTICK_CENTER=128
+DEVICE_JOYSTICK_CENTER = 128
 
 #capabilities = uinput.capabilities.CAPABILITIES
 capabilities = uinput.ev.__dict__
-registered_parameters = { MOUSE: {}, 
-                   JOYSTICK:  {
-                    uinput.ABS_X: (JOYSTICK_MIN, JOYSTICK_MAX, 0, 0),
-                    uinput.ABS_Y: (JOYSTICK_MIN, JOYSTICK_MAX, 0, 0),
-                             }, 
-                   DIGITAL_JOYSTICK:  {
-                    uinput.ABS_X: (JOYSTICK_MIN, JOYSTICK_MAX, 0, 0),
-                    uinput.ABS_Y: (JOYSTICK_MIN, JOYSTICK_MAX, 0, 0),
-                             }, 
-                   KEYBOARD: {} }
+registered_parameters = {MOUSE: {},
+                         JOYSTICK: {
+                             uinput.ABS_X: (JOYSTICK_MIN, JOYSTICK_MAX, 0, 0),
+                             uinput.ABS_Y: (JOYSTICK_MIN, JOYSTICK_MAX, 0, 0),
+                         },
+                         DIGITAL_JOYSTICK: {
+                             uinput.ABS_X: (JOYSTICK_MIN, JOYSTICK_MAX, 0, 0),
+                             uinput.ABS_Y: (JOYSTICK_MIN, JOYSTICK_MAX, 0, 0),
+                         },
+                         KEYBOARD: {}}
 uinput_devices = {}
 locks = {}
 for t in DEVICE_TYPES:
@@ -96,14 +97,14 @@ JS_RIGHT = 0x9702
 JS_DOWN = 0x9703
 JS_UP = 0x9704
 JS_MOVEMENT = {
-                    "X_LEFT"    : (JS, JS_LEFT), 
-                    "X_RIGHT"   : (JS, JS_RIGHT),
-                    "Y_UP"      : (JS, JS_UP),
-                    "Y_DOWN"    : (JS, JS_DOWN),
+    "X_LEFT": (JS, JS_LEFT),
+    "X_RIGHT": (JS, JS_RIGHT),
+    "Y_UP": (JS, JS_UP),
+    "Y_DOWN": (JS, JS_DOWN),
 }
 for k in JS_MOVEMENT:
     capabilities[k] = JS_MOVEMENT[k]
-    
+
 """
 Load the X Keysym to UInput map 
 """
@@ -120,7 +121,8 @@ if os.path.exists(__keysym_map_path):
                 __keysym_map[arr[0].lower()] = arr[1]
 else:
     logger.warning("Could not find keysym to uinput map %s", __keysym_map_path)
-    
+
+
 def get_keysym_to_uinput_mapping(keysym):
     """
     Get the mapping for the provided keysym. This is case insensitive.
@@ -136,18 +138,21 @@ def get_keysym_to_uinput_mapping(keysym):
                    keysym,
                    __keysym_map_path)
 
+
 def are_calibration_tools_available():
     """
     Test for the existence of calibration tools 'jstest-gtk' and 'jscal'.
     """
     return os.system("which jstest-gtk >/dev/null 2>&1") == 0 and os.system("which jscal >/dev/null 2>&1") == 0
-    
+
+
 def open_devices():
     """
     Initialize, opening all devices
     """
     __check_devices()
-    
+
+
 def close_devices():
     """
     Clean up, closing all the devices
@@ -156,7 +161,8 @@ def close_devices():
         if device_type in uinput_devices:
             logger.debug("Closing UINPUT device %s", device_type)
             del uinput_devices[device_type]
-            
+
+
 def calibrate(device_type):
     """
     Run external joystick calibration utility
@@ -165,14 +171,15 @@ def calibrate(device_type):
     device_type    --    device type
     """
     if are_calibration_tools_available():
-        if not device_type in [ JOYSTICK, DIGITAL_JOYSTICK ]:
+        if not device_type in [JOYSTICK, DIGITAL_JOYSTICK]:
             raise Exception("Cannot calibrate this device type (%s)" % device_type)
         device_file = get_device(device_type)
         if device_file:
             load_calibration(device_type)
             os.system("jstest-gtk '%s'" % (device_file))
             save_calibration(device_type)
-        
+
+
 def save_calibration(device_type):
     """
     Run external joystick calibration utility
@@ -181,19 +188,20 @@ def save_calibration(device_type):
     device_type    --    device type
     """
     if are_calibration_tools_available():
-        if not device_type in [ JOYSTICK, DIGITAL_JOYSTICK ]:
+        if not device_type in [JOYSTICK, DIGITAL_JOYSTICK]:
             raise Exception("Cannot calibrate this device type (%s)" % device_type)
         device_file = get_device(device_type)
         if device_file:
-            proc = subprocess.Popen(["jscal", "-q", device_file ], stdout=subprocess.PIPE) 
+            proc = subprocess.Popen(["jscal", "-q", device_file], stdout=subprocess.PIPE)
             out = proc.communicate()[0]
             js_config_file = _get_js_config_file(device_type)
             f = open(js_config_file, "w")
-            try :
+            try:
                 f.write(out)
-            finally :
+            finally:
                 f.close()
-        
+
+
 def load_calibration(device_type):
     """
     Run external joystick calibration utility
@@ -202,24 +210,25 @@ def load_calibration(device_type):
     device_type    --    device type
     """
     if are_calibration_tools_available():
-        if not device_type in [ JOYSTICK, DIGITAL_JOYSTICK ]:
+        if not device_type in [JOYSTICK, DIGITAL_JOYSTICK]:
             raise Exception("Cannot calibrate this device type (%s)" % device_type)
         device_file = get_device(device_type)
         if device_file:
             js_config_file = _get_js_config_file(device_type)
             if os.path.exists(js_config_file):
                 f = open(js_config_file, "r")
-                try :
+                try:
                     cal = f.readline().split()
                     logger.info("Calibrating using '%s'", cal)
-                    proc = subprocess.Popen(cal, stdout=subprocess.PIPE) 
+                    proc = subprocess.Popen(cal, stdout=subprocess.PIPE)
                     logger.info("Calibrated. %s", proc.communicate()[0])
                 except Exception as e:
-                    logger.error("Failed to calibrate joystick device.", exc_info = e)
-                finally :
+                    logger.error("Failed to calibrate joystick device.", exc_info=e)
+                finally:
                     f.close()
             else:
                 logger.warn("No joystick calibration available.")
+
 
 def _get_js_config_file(device_type):
     """
@@ -233,7 +242,8 @@ def _get_js_config_file(device_type):
     """
     g15os.mkdir_p(g15globals.user_config_dir)
     return os.path.join(g15globals.user_config_dir, "%s.js" % device_type)
-            
+
+
 def get_device(device_type):
     """
     Find the actual input device given the virtual device type
@@ -248,7 +258,7 @@ def get_device(device_type):
             name_file = "%s/name" % (dev_dir)
             if os.path.exists(name_file):
                 f = open(name_file, "r")
-                try :
+                try:
                     device_name = f.readline().replace("\n", "")
                     if device_name == "gnome15-%s" % device_type:
                         dev_files = os.listdir(dev_dir)
@@ -258,10 +268,10 @@ def get_device(device_type):
                         for dp in dev_files:
                             if dp.startswith("event"):
                                 return "/dev/input/%s" % dp
-                finally :
-                    f.close() 
-                
-    
+                finally:
+                    f.close()
+
+
 def syn(target):
     """
     Emit the syn.
@@ -270,7 +280,8 @@ def syn(target):
     target         --    target device type (MOUSE, KEYBOARD or JOYSTICK).
     """
     uinput_devices[target].syn()
-    
+
+
 def emit(target, code, value, syn=True):
     """
     Emit an input event, optionally emit a SYN as well
@@ -286,15 +297,15 @@ def emit(target, code, value, syn=True):
     """
     if not target in DEVICE_TYPES:
         raise Exception("Invalid target. '%s' must be one of %s" % (target, str(DEVICE_TYPES)))
-    
+
     if not isinstance(code, tuple):
-        if target == MOUSE and code in [ uinput.REL_X[1], uinput.REL_Y[1] ]:
+        if target == MOUSE and code in [uinput.REL_X[1], uinput.REL_Y[1]]:
             logger.debug("UINPUT mouse event at %s, code = %s, val = %d, syn = %s",
                          target,
                          code,
                          value,
                          str(syn))
-            code = ( EV_REL, code )            
+            code = ( EV_REL, code )
         elif ( target == JOYSTICK or target == DIGITAL_JOYSTICK ):
             """ We translate the 'virtual' uinput codes into real uinput ones """
             if code == JS_LEFT:
@@ -317,26 +328,28 @@ def emit(target, code, value, syn=True):
                          code,
                          value,
                          str(syn))
-        else: 
+        else:
             code = ( EV_KEY, code )
             logger.debug("UINPUT uinput keyboard event at %s, code = %s, val = %d, syn = %s",
                          target,
                          code,
                          value,
                          str(syn))
-    
+
     locks[target].acquire()
     try:
-        uinput_devices[target].emit( code, value, syn)
+        uinput_devices[target].emit(code, value, syn)
     finally:
         locks[target].release()
-    
-def __get_keys(prefix, exclude = None):
+
+
+def __get_keys(prefix, exclude=None):
     l = []
     for k in sorted(capabilities.iterkeys()):
         if k.startswith(prefix) and ( exclude == None or not k.startswith(exclude) ):
             l.append(capabilities[k])
     return l
+
 
 def get_keys(device_type):
     if device_type == MOUSE:
@@ -346,7 +359,8 @@ def get_keys(device_type):
     else:
         return __get_keys("KEY_")
 
-def get_buttons(device_type, real_uinput_only = False):
+
+def get_buttons(device_type, real_uinput_only=False):
     fname = os.path.join(g15globals.ukeys_dir, "%s.keys" % device_type)
     f = open(fname, "r")
     b = []
@@ -358,7 +372,8 @@ def get_buttons(device_type, real_uinput_only = False):
             else:
                 logger.warning("Invalid key name '%s' in %s", line, fname)
     return b
-    
+
+
 def __check_devices():
     for device_type in DEVICE_TYPES:
         if not device_type in uinput_devices:
@@ -367,7 +382,7 @@ def __check_devices():
             for b, _ in get_buttons(device_type, True):
                 if capabilities[b][0] < 0x9999:
                     keys.append(capabilities[b])
-            
+
             if device_type == MOUSE:
                 virtual_product_id = GNOME15_MOUSE_PRODUCT_ID
                 keys.append((REL_X[0], REL_X[1], 0, 255, 0, 0))
@@ -382,14 +397,14 @@ def __check_devices():
                 keys.append(ABS_Y + (JOYSTICK_MIN, JOYSTICK_MAX, 0, 0))
             else:
                 virtual_product_id = GNOME15_KEYBOARD_PRODUCT_ID
-                
-            caps = tuple(keys)    
+
+            caps = tuple(keys)
             uinput_device = uinput.Device(name="gnome15-%s" % device_type,
-                                          events  = caps,
-                                          vendor = GNOME15_USB_VENDOR_ID,
-                                          product = virtual_product_id)                                
+                                          events=caps,
+                                          vendor=GNOME15_USB_VENDOR_ID,
+                                          product=virtual_product_id)
             uinput_devices[device_type] = uinput_device
-            
+
             # Centre the joystick by default
             if device_type == JOYSTICK or device_type == DIGITAL_JOYSTICK:
                 syn(device_type)

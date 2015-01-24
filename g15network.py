@@ -1,4 +1,4 @@
-#  Gnome15 - Suite of tools for the Logitech G series keyboards and headsets
+# Gnome15 - Suite of tools for the Logitech G series keyboards and headsets
 #  Copyright (C) 2012 Brett Smith <tanktarta@blueyonder.co.uk>
 #
 #  This program is free software: you can redistribute it and/or modify
@@ -13,7 +13,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
- 
+
 '''
 Classes and utilities for monitoring the current state of the network, allowing
 plugins that declare "needs_network" to be enabled or disabled depending on this
@@ -27,21 +27,23 @@ import dbus
 
 # Logging
 import logging
+
 logger = logging.getLogger(__name__)
 
 _system_bus = dbus.SystemBus()
 
-NM_BUS_NAME       = 'org.freedesktop.NetworkManager'
-NM_OBJECT_PATH    = '/org/freedesktop/NetworkManager'
+NM_BUS_NAME = 'org.freedesktop.NetworkManager'
+NM_OBJECT_PATH = '/org/freedesktop/NetworkManager'
 NM_INTERFACE_NAME = 'org.freedesktop.NetworkManager'
-NM_STATE_INDEX = {  0: 'Unknown',
-                   10: 'Asleep', 
-                   20: 'Disconnected',
-                   30: 'Disconnecting',
-                   40: 'Connecting',
-                   50: 'Connected (Local)',
-                   60: 'Connected (Site)',
-                   70: 'Connected (Global)' }
+NM_STATE_INDEX = {0: 'Unknown',
+                  10: 'Asleep',
+                  20: 'Disconnected',
+                  30: 'Disconnecting',
+                  40: 'Connecting',
+                  50: 'Connected (Local)',
+                  60: 'Connected (Site)',
+                  70: 'Connected (Global)'}
+
 
 class NetworkManager():
     def __init__(self, screen):
@@ -54,8 +56,10 @@ class NetworkManager():
             self._set_state(self._interface.state())
             self._handle = self._interface.connect_to_signal('StateChanged', self._set_state)
         except dbus.DBusException as e:
-            logger.warning("NetworkManager DBUS interface could not be contacted. All plugins will assume the network is available, and may behave unexpectedly.", exc_info = e)
-                
+            logger.warning(
+                "NetworkManager DBUS interface could not be contacted. All plugins will assume the network is available, and may behave unexpectedly.",
+                exc_info=e)
+
             # Assume connected
             self._state = 70
 
@@ -66,13 +70,13 @@ class NetworkManager():
         else:
             logger.info("New network state is unknown")
             s = 0
-        if s != self._state and s in [ 0, 20, 60, 70 ]:
+        if s != self._state and s in [0, 20, 60, 70]:
             self._state = s
             for l in self.listeners:
                 l(self.is_network_available())
-            
+
     def is_network_available(self):
-        return self._state in [ 60, 70 ]
-        
+        return self._state in [60, 70]
+
     def is_internet_available(self):
         return self._state == 70

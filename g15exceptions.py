@@ -1,4 +1,4 @@
-#  Gnome15 - Suite of tools for the Logitech G series keyboards and headsets
+# Gnome15 - Suite of tools for the Logitech G series keyboards and headsets
 #  Copyright (C) 2010 Brett Smith <tanktarta@blueyonder.co.uk>
 #
 #  This program is free software: you can redistribute it and/or modify
@@ -13,15 +13,18 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
- 
+
 import gnome15.g15locale as g15locale
+
 _ = g15locale.get_translation("gnome15").ugettext
 
+
 class NotConnectedException(Exception):
-    def __init__(self, message = _("Failed to connect.")):
+    def __init__(self, message=_("Failed to connect.")):
         Exception.__init__(self, message)
-        
+
+
 class RetryException(Exception):
-    def __init__(self, message = _("Retry.")):
+    def __init__(self, message=_("Retry.")):
         Exception.__init__(self, message)
     

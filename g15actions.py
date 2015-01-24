@@ -1,4 +1,4 @@
-#  Gnome15 - Suite of tools for the Logitech G series keyboards and headsets
+# Gnome15 - Suite of tools for the Logitech G series keyboards and headsets
 #  Copyright (C) 2011 Brett Smith <tanktarta@blueyonder.co.uk>
 #
 #  This program is free software: you can redistribute it and/or modify
@@ -37,24 +37,24 @@ CANCEL_MACRO = "cancel-macro"
 Global the plugins and other subsystems may add new actions too. The list
 here is the minimum a device must support to be useful.
 """
-actions = [           
-        g15driver.NEXT_SELECTION,
-        g15driver.PREVIOUS_SELECTION,
-        g15driver.NEXT_PAGE,
-        g15driver.PREVIOUS_PAGE,
-        g15driver.SELECT,
-        g15driver.VIEW,
-        g15driver.CLEAR,
-        g15driver.MENU,
-        g15driver.MEMORY_1,
-        g15driver.MEMORY_2,
-        g15driver.MEMORY_3,
-        NEXT_SCREEN,
-        PREVIOUS_SCREEN,
-        NEXT_BACKLIGHT,
-        PREVIOUS_BACKLIGHT,
-        CANCEL_MACRO
-        ]
+actions = [
+    g15driver.NEXT_SELECTION,
+    g15driver.PREVIOUS_SELECTION,
+    g15driver.NEXT_PAGE,
+    g15driver.PREVIOUS_PAGE,
+    g15driver.SELECT,
+    g15driver.VIEW,
+    g15driver.CLEAR,
+    g15driver.MENU,
+    g15driver.MEMORY_1,
+    g15driver.MEMORY_2,
+    g15driver.MEMORY_3,
+    NEXT_SCREEN,
+    PREVIOUS_SCREEN,
+    NEXT_BACKLIGHT,
+    PREVIOUS_BACKLIGHT,
+    CANCEL_MACRO
+]
 
 
 class ActionBinding():
@@ -62,11 +62,12 @@ class ActionBinding():
     Created when an action is invoked and contains the keys that activated
     the action (if any), the state they were in and the action ID
     """
+
     def __init__(self, action, keys, state):
         self.action = action
         self.state = state
         self.keys = keys
-        
+
     def __cmp__(self, other):
         f = cmp(self.keys, other.keys)
         return f if f != 0 else cmp(self.state, other.state)

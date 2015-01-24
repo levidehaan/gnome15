@@ -1,4 +1,4 @@
-#  Gnome15 - Suite of tools for the Logitech G series keyboards and headsets
+# Gnome15 - Suite of tools for the Logitech G series keyboards and headsets
 #  Copyright (C) 2010 Brett Smith <tanktarta@blueyonder.co.uk>
 #  Copyright (C) 2013 Nuno Araujo <nuno.araujo@russo79.com>
 #
@@ -19,7 +19,8 @@
 Set of utility methods to read values stored in gconf
 '''
 
-def get_float_or_default(gconf_client, key, default = None):
+
+def get_float_or_default(gconf_client, key, default=None):
     """
     Tries to read a float value from GConf and return a default value it
     doesn't exist.
@@ -32,7 +33,8 @@ def get_float_or_default(gconf_client, key, default = None):
     float_val = gconf_client.get(key)
     return default if float_val == None else float_val.get_float()
 
-def get_string_or_default(gconf_client, key, default = None):
+
+def get_string_or_default(gconf_client, key, default=None):
     """
     Tries to read a string value from GConf and return a default value it
     doesn't exist.
@@ -45,7 +47,8 @@ def get_string_or_default(gconf_client, key, default = None):
     str_val = gconf_client.get(key)
     return default if str_val == None else str_val.get_string()
 
-def get_bool_or_default(gconf_client, key, default = None):
+
+def get_bool_or_default(gconf_client, key, default=None):
     """
     Tries to read a boolean value from GConf and return a default value it
     doesn't exist.
@@ -58,7 +61,8 @@ def get_bool_or_default(gconf_client, key, default = None):
     bool_val = gconf_client.get(key)
     return default if bool_val == None else bool_val.get_bool()
 
-def get_int_or_default(gconf_client, key, default = None):
+
+def get_int_or_default(gconf_client, key, default=None):
     """
     Tries to read a integer value from GConf and return a default value it
     doesn't exist.
@@ -71,7 +75,8 @@ def get_int_or_default(gconf_client, key, default = None):
     int_val = gconf_client.get(key)
     return default if int_val == None else int_val.get_int()
 
-def get_rgb_or_default(gconf_client, key, default = None):
+
+def get_rgb_or_default(gconf_client, key, default=None):
     """
     Tries to read a "rgb" value from GConf and return a default value it
     doesn't exist.
@@ -85,6 +90,7 @@ def get_rgb_or_default(gconf_client, key, default = None):
     """
     val = gconf_client.get_string(key)
     return default if val == None or val == "" else _to_rgb(val)
+
 
 def get_cairo_rgba_or_default(gconf_client, key, default):
     """
@@ -107,10 +113,11 @@ def get_cairo_rgba_or_default(gconf_client, key, default):
     else:
         v = _to_rgb(str_val)
         alpha = gconf_client.get_int(key + "_opacity")
-        val = ( v[0], v[1],v[2], alpha)
+        val = ( v[0], v[1], v[2], alpha)
     return (float(val[0]) / 255.0, float(val[1]) / 255.0, float(val[2]) / 255.0, float(val[3]) / 255.0)
 
-def _to_rgb(string_rgb, default = None):
+
+def _to_rgb(string_rgb, default=None):
     #This method should be in g15convert. The thing is that
     #g15convert depends on gtk and on Fedora it raises an error when launching
     #g15-system-service.

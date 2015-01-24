@@ -1,4 +1,4 @@
-#  Gnome15 - Suite of tools for the Logitech G series keyboards and headsets
+# Gnome15 - Suite of tools for the Logitech G series keyboards and headsets
 #  Copyright (C) 2010 Brett Smith <tanktarta@blueyonder.co.uk>
 #
 #  This program is free software: you can redistribute it and/or modify
@@ -24,25 +24,25 @@ package_dir = os.path.abspath(os.path.dirname(__file__))
 image_dir = os.path.join(package_dir, "..", "..", "data", "images")
 dev = False
 if os.path.exists(image_dir):
-	dev = True 
-	ui_dir = os.path.realpath(os.path.join(package_dir, "..", "..", "data", "ui"))
-	font_dir = os.path.realpath(os.path.join(package_dir, "..", "..", "data", "fonts"))
-	icons_dir = os.path.realpath(os.path.join(package_dir, "..", "..", "data", "icons"))
-	ukeys_dir = os.path.realpath(os.path.join(package_dir, "..", "..", "data", "ukeys"))
-	plugin_dir = os.path.realpath(os.path.join(package_dir, "..", "plugins"))
-	scripts_dir = os.path.realpath(os.path.join(package_dir, "..", "scripts"))
-	themes_dir = os.path.realpath(os.path.join(package_dir, "..", "..", "data", "themes"))
-	i18n_dir = os.path.realpath(os.path.join(package_dir, "..", "i18n"))
-else: 
-	image_dir = "/usr/share/gnome15/images"
-	ui_dir = "/usr/share/gnome15/ui"
-	font_dir = "/usr/share/gnome15"
-	plugin_dir = "/usr/share/gnome15/plugins"
-	themes_dir = "/usr/share/gnome15/themes"
-	ukeys_dir = "/usr/share/gnome15/ukeys"
-	i18n_dir = "/usr/share/gnome15/i18n"
-	icons_dir = "/usr/share/icons"
-	scripts_dir = "/usr/bin"
+    dev = True
+    ui_dir = os.path.realpath(os.path.join(package_dir, "..", "..", "data", "ui"))
+    font_dir = os.path.realpath(os.path.join(package_dir, "..", "..", "data", "fonts"))
+    icons_dir = os.path.realpath(os.path.join(package_dir, "..", "..", "data", "icons"))
+    ukeys_dir = os.path.realpath(os.path.join(package_dir, "..", "..", "data", "ukeys"))
+    plugin_dir = os.path.realpath(os.path.join(package_dir, "..", "plugins"))
+    scripts_dir = os.path.realpath(os.path.join(package_dir, "..", "scripts"))
+    themes_dir = os.path.realpath(os.path.join(package_dir, "..", "..", "data", "themes"))
+    i18n_dir = os.path.realpath(os.path.join(package_dir, "..", "i18n"))
+else:
+    image_dir = "/usr/share/gnome15/images"
+    ui_dir = "/usr/share/gnome15/ui"
+    font_dir = "/usr/share/gnome15"
+    plugin_dir = "/usr/share/gnome15/plugins"
+    themes_dir = "/usr/share/gnome15/themes"
+    ukeys_dir = "/usr/share/gnome15/ukeys"
+    i18n_dir = "/usr/share/gnome15/i18n"
+    icons_dir = "/usr/share/icons"
+    scripts_dir = "/usr/bin"
 
 user_config_dir = os.path.join(xdg.BaseDirectory.xdg_config_home, "gnome15")
 user_data_dir = os.path.join(xdg.BaseDirectory.xdg_data_home, "gnome15")

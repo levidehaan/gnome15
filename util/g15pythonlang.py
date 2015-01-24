@@ -1,4 +1,4 @@
-#  Gnome15 - Suite of tools for the Logitech G series keyboards and headsets
+# Gnome15 - Suite of tools for the Logitech G series keyboards and headsets
 #  Copyright (C) 2010 Brett Smith <tanktarta@blueyonder.co.uk>
 #  Copyright (C) 2013 Nuno Araujo <nuno.araujo@russo79.com>
 #
@@ -19,11 +19,13 @@ import re
 import threading
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 '''
 Helper methods "extending" the python syntax
 '''
+
 
 def attr_exists(obj, attr_name):
     """
@@ -32,8 +34,9 @@ def attr_exists(obj, attr_name):
     Keyword arguments:
     obj            -- object
     attr_name      -- attribute name
-    """    
+    """
     return getattr(obj, attr_name, None) is not None
+
 
 def call_if_exists(obj, function_name, *args):
     """
@@ -42,6 +45,7 @@ def call_if_exists(obj, function_name, *args):
     func = getattr(obj, function_name, None)
     if callable(func):
         func(*args)
+
 
 def module_exists(module_name):
     """
@@ -53,10 +57,11 @@ def module_exists(module_name):
     try:
         __import__(module_name)
     except ImportError as e:
-        logger.debug("Could not find module %s", module_name, exc_info = e)
+        logger.debug("Could not find module %s", module_name, exc_info=e)
         return False
     else:
         return True
+
 
 def value_or_empty(d, key):
     """
@@ -69,6 +74,7 @@ def value_or_empty(d, key):
     """
     return value_or_default(d, key, [])
 
+
 def value_or_blank(d, key):
     """
     Returns the value corresponding to a given key in a dictionnary.
@@ -80,6 +86,7 @@ def value_or_blank(d, key):
     """
     return value_or_default(d, key, "")
 
+
 def value_or_default(d, key, default_value):
     """
     Returns the value corresponding to a given key in a dictionnary.
@@ -90,11 +97,12 @@ def value_or_default(d, key, default_value):
     key:           The key to use for the lookup
     default_value: The default value to return if no value is found
     """
-    try :
+    try:
         return d[key]
     except KeyError as ke:
-        logger.debug("Didn't found %s in %s", key, d, exc_info = ke)
+        logger.debug("Didn't found %s in %s", key, d, exc_info=ke)
         return default_value
+
 
 def to_int_or_none(s):
     """
@@ -103,8 +111,9 @@ def to_int_or_none(s):
     try:
         return int(s)
     except (ValueError, TypeError) as e:
-        logger.debug("Error converting %s to int", s, exc_info = e)
+        logger.debug("Error converting %s to int", s, exc_info=e)
         return None
+
 
 def to_float_or_none(s):
     """
@@ -113,8 +122,9 @@ def to_float_or_none(s):
     try:
         return float(s)
     except (ValueError, TypeError) as e:
-        logger.debug("Error converting %s to float", s, exc_info = e)
+        logger.debug("Error converting %s to float", s, exc_info=e)
         return None
+
 
 def find(f, seq):
     """Return first item in sequence where f(item) == True."""
@@ -122,7 +132,8 @@ def find(f, seq):
         if f(item):
             return item
 
-def append_if_exists(el, key, val, formatter = "%s"):
+
+def append_if_exists(el, key, val, formatter="%s"):
     """
     Appends a value from a dictionnary to a string applying a formatter.
     The value is only appended if it exists in the dictionnary and it's value is not None
@@ -141,6 +152,7 @@ def append_if_exists(el, key, val, formatter = "%s"):
         val += formatter % el[key]
     return val
 
+
 def parse_as_properties(properties_string):
     """
     Create a dictionnary [key,value] from a string containing a set of
@@ -156,12 +168,16 @@ def parse_as_properties(properties_string):
             d[a[0]] = a[1]
     return d
 
+
 def split_args(args):
     return re.findall(r'\w+', args)
+
 
 '''
 Date / time utilities
 '''
+
+
 def total_seconds(time_delta):
     """
     Calculate the total of seconds ellapsed in a timedelta value
@@ -170,16 +186,20 @@ def total_seconds(time_delta):
     time_delta: The timedelta value for which the number of seconds should be
     calculated.
     """
-    return (time_delta.microseconds + (time_delta.seconds + time_delta.days * 24.0 * 3600.0) * 10.0**6.0) / 10.0**6.0
+    return (
+           time_delta.microseconds + (time_delta.seconds + time_delta.days * 24.0 * 3600.0) * 10.0 ** 6.0) / 10.0 ** 6.0
+
 
 '''
 GObject thread. Hosting applications may set this so that is_gobject_thread()
 function works
 '''
-gobject_thread = [ None ]
+gobject_thread = [None]
+
 
 def is_gobject_thread():
     return threading.currentThread() == gobject_thread[0]
+
 
 def set_gobject_thread():
     gobject_thread[0] = threading.currentThread()

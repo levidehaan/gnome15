@@ -1,4 +1,4 @@
-#  Gnome15 - Suite of tools for the Logitech G series keyboards and headsets
+# Gnome15 - Suite of tools for the Logitech G series keyboards and headsets
 #  Copyright (C) 2010 Brett Smith <tanktarta@blueyonder.co.uk>
 #  Copyright (C) 2013 Nuno Araujo <nuno.araujo@russo79.com>
 #
@@ -24,6 +24,7 @@ import g15pythonlang
 
 # Logging
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -39,8 +40,9 @@ def rotate_element(element, degrees):
     t.rotate(g15convert.degrees_to_radians(degrees))
     ts = "m" + str(t)[7:]
     element.set("transform", ts)
-    
-def get_transforms(element, position_only = False):
+
+
+def get_transforms(element, position_only=False):
     transform_val = element.get("transform")
     list = []
     if transform_val != None:
@@ -58,9 +60,11 @@ def get_transforms(element, position_only = False):
                 list.append(cairo.Matrix(1.0, 0.0, 0.0, 1.0, float(args[0]), float(args[1])))
             elif name == "matrix":
                 if position_only:
-                    list.append(cairo.Matrix(float(args[0]), float(args[1]), float(args[2]), float(args[3]),float(args[4]),float(args[5])))
+                    list.append(
+                        cairo.Matrix(float(args[0]), float(args[1]), float(args[2]), float(args[3]), float(args[4]),
+                                     float(args[5])))
                 else:
-                    list.append(cairo.Matrix(1, 0, 0, 1, float(args[4]),float(args[5])))
+                    list.append(cairo.Matrix(1, 0, 0, 1, float(args[4]), float(args[5])))
             elif name == "scale":
                 list.append(cairo.Matrix(float(args[0]), 0.0, 0.0, float(args[1]), 0.0, 0.0))
             else:
@@ -68,6 +72,7 @@ def get_transforms(element, position_only = False):
             start = end_args + 1
 
     return list
+
 
 def get_location(element):
     list = []
@@ -92,7 +97,7 @@ def get_location(element):
                 if name == "translate":
                     list.append((float(args[0]), float(args[1])))
                 elif name == "matrix":
-                    list.append((float(args[4]),float(args[5])))
+                    list.append((float(args[4]), float(args[5])))
                 else:
                     logger.warning("WARNING: Unsupported transform %s", name)
                 start = end_args + 1
@@ -105,13 +110,14 @@ def get_location(element):
         y += i[1]
     return (x, y)
 
-def get_actual_bounds(element, relative_to = None):
+
+def get_actual_bounds(element, relative_to=None):
     id = element.get("id")
 
     bounds = get_bounds(element)
     transforms = []
     t = cairo.Matrix()
-    t.translate(bounds[0],bounds[1])
+    t.translate(bounds[0], bounds[1])
     transforms.append(t)
 
     # If the element is a clip path and the associated clipped_node is provided, the work out the transforms from
@@ -130,6 +136,7 @@ def get_actual_bounds(element, relative_to = None):
 
     xx, yx, xy, yy, x0, y0 = t
     return x0, y0, bounds[2], bounds[3]
+
 
 def get_bounds(element):
     x = 0.0

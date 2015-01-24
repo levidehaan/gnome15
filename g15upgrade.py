@@ -1,7 +1,7 @@
-#  Gnome15 - Suite of tools for the Logitech G series keyboards and headsets
-#  Copyright (C) 2011 Brett Smith <tanktarta@blueyonder.co.uk>
+# Gnome15 - Suite of tools for the Logitech G series keyboards and headsets
+# Copyright (C) 2011 Brett Smith <tanktarta@blueyonder.co.uk>
 #
-#  This program is free software: you can redistribute it and/or modify
+# This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
@@ -13,13 +13,13 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
- 
+
 """
 Utility to upgrade from earlier versions of Gnome15. This should be called
 upon startup of either g15-config or g15-desktop-service to check whether
 any migration needs to take place.
 """
- 
+
 import os.path
 import g15devices
 import g15globals
@@ -30,10 +30,12 @@ import sys
 import subprocess
 
 logger = logging.getLogger(__name__)
- 
+
+
 def upgrade():
     version_0_x_0_to_0_7_0()
     version_0_x_0_to_0_8_5()
+
 
 def version_0_x_0_to_0_8_5():
     """
@@ -43,7 +45,8 @@ def version_0_x_0_to_0_8_5():
     new_path = os.path.join(g15globals.user_config_dir, "plugin-data", "lcdbiff", "mailboxes.xml")
     if os.path.exists(old_path) and not os.path.exists(new_path):
         logger.warn("Upgrading to 0.8.5, moving mailboxes")
-        os.renames(old_path, new_path)    
+        os.renames(old_path, new_path)
+
 
 def version_0_x_0_to_0_7_0():
     """
@@ -52,9 +55,9 @@ def version_0_x_0_to_0_7_0():
     sub-directories
     """
     macros_dir = os.path.join(g15globals.user_config_dir, "macro_profiles")
-    if os.path.exists(os.path.join(macros_dir,  "0.macros")):
+    if os.path.exists(os.path.join(macros_dir, "0.macros")):
         logger.info("Upgrading macros and configuration to 0.7.x format")
-        
+
         """
         If the default macro profile exists at the root of the macro_profiles directory,
         then conversion hasn't yet occurred. So, copy all profiles into all device
@@ -72,7 +75,7 @@ def version_0_x_0_to_0_7_0():
                     logger.info("Copying macro_profile %s to %s ", file, device.uid)
                     shutil.copyfile(profile_file, os.path.join(device_dir, file))
                 os.remove(profile_file)
-                
+
         """
         Copy the GConf folders. 
         """
@@ -89,7 +92,7 @@ def version_0_x_0_to_0_7_0():
             logger.info("Copying plugin settings %s to %s", gconf_plugins_dir, device.uid)
             target_plugins_path = os.path.join(device_dir, "plugins")
             if not os.path.exists(target_plugins_path):
-                shutil.copytree(gconf_plugins_dir, target_plugins_path )
+                shutil.copytree(gconf_plugins_dir, target_plugins_path)
         logger.info("Clearing current settings root")
         shutil.rmtree(gconf_plugins_dir)
         f = open(gconf_file, 'w')
@@ -99,8 +102,7 @@ def version_0_x_0_to_0_7_0():
             f.write('</gconf>\n')
         finally:
             f.close()
-        
-            
+
         """
         Tell GConf to reload it caches by finding it's process ID and sending it
         SIGHUP
@@ -109,8 +111,9 @@ def version_0_x_0_to_0_7_0():
             process_info = subprocess.check_output(["sh", "-c", "ps -U %d|grep gconfd|head -1" % os.getuid()])
         else:
             import commands
-            process_info = commands.getstatusoutput("sh -c \"ps -U %d|grep gconfd|head -1\"" % os.getuid()) 
+
+            process_info = commands.getstatusoutput("sh -c \"ps -U %d|grep gconfd|head -1\"" % os.getuid())
         if process_info:
             pid = g15pythonlang.split_args(process_info)[0]
             logger.info("Sending process %s SIGHUP", pid)
-            subprocess.check_call([ "kill", "-SIGHUP", pid ])
+            subprocess.check_call(["kill", "-SIGHUP", pid])

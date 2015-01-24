@@ -1,6 +1,6 @@
 # coding: utf-8
- 
-#  Gnome15 - Suite of tools for the Logitech G series keyboards and headsets
+
+# Gnome15 - Suite of tools for the Logitech G series keyboards and headsets
 #  Copyright (C) 2011 Brett Smith <tanktarta@blueyonder.co.uk>
 #
 #  This program is free software: you can redistribute it and/or modify
@@ -23,10 +23,12 @@ deals with all the hard work of connecting to DBus and monitoring events.
 """
 
 import gnome15.g15locale as g15locale
+
 _ = g15locale.get_translation("gnome15").ugettext
 
 import sys
 import pygtk
+
 pygtk.require('2.0')
 import gtk
 import subprocess
@@ -48,23 +50,24 @@ import xdg.BaseDirectory
 
 # Logging
 import logging
+
 logger = logging.getLogger(__name__)
 
 from threading import RLock
 from threading import Thread
-                
+
 icon_theme = gtk.icon_theme_get_default()
 if g15globals.dev:
     icon_theme.prepend_search_path(g15globals.icons_dir)
 
 # Private     
-__browsers = { }
-    
+__browsers = {}
+
 """
 Some constants
 """
-AUTHORS=["Brett Smith <tanktarta@blueyonder.co.uk>", "Nuno Araujo", "Ciprian Ciubotariu", "Andrea Calabrò" ]
-GPL="""
+AUTHORS = ["Brett Smith <tanktarta@blueyonder.co.uk>", "Nuno Araujo", "Ciprian Ciubotariu", "Andrea Calabrò"]
+GPL = """
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 
@@ -741,6 +744,7 @@ Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
 """
 
+
 def autostart_path_for(application_name):
     """
     Returns the autostart path of the application_name desktop file
@@ -748,7 +752,8 @@ def autostart_path_for(application_name):
     return os.path.join(xdg.BaseDirectory.xdg_config_home,
                         "autostart",
                         "%s.desktop" % application_name)
-    
+
+
 def is_desktop_application_installed(application_name):
     """
     Get if a desktop file is installed for a particular application
@@ -764,20 +769,23 @@ def is_desktop_application_installed(application_name):
             return True
     return False
 
+
 def is_autostart_application(application_name):
     """
     Get whether the application is set to autostart
     """
-    installed  = is_desktop_application_installed(application_name)
+    installed = is_desktop_application_installed(application_name)
     path = autostart_path_for(application_name)
     if os.path.exists(path):
         desktop_entry = xdg.DesktopEntry.DesktopEntry(path)
-        autostart = len(desktop_entry.get('X-GNOME-Autostart-enabled')) == 0 or desktop_entry.get('X-GNOME-Autostart-enabled', type="boolean")
+        autostart = len(desktop_entry.get('X-GNOME-Autostart-enabled')) == 0 or desktop_entry.get(
+            'X-GNOME-Autostart-enabled', type="boolean")
         hidden = desktop_entry.getHidden()
         return autostart and not hidden
     else:
         # There is no config file, so enabled if installed
         return installed
+
 
 def set_autostart_application(application_name, enabled):
     """
@@ -799,6 +807,7 @@ def set_autostart_application(application_name, enabled):
         desktop_entry.set("Hidden", "false")
         desktop_entry.write()
 
+
 def get_desktop():
     '''
     Utility function to get the name of the current desktop environment. The list
@@ -813,36 +822,37 @@ def get_desktop():
     kde            KDE 
     [None]         No known desktop  
     '''
-    
+
     evars = os.environ
-    
+
     # GNOME Shell (need a better way)
     if ( "DESKTOP_SESSION" in evars and evars["DESKTOP_SESSION"] == "gnome-shell" ) or \
-       ( "GJS_DEBUG_OUTPUT" in evars ):
-            return "gnome-shell"
-    
+            ( "GJS_DEBUG_OUTPUT" in evars ):
+        return "gnome-shell"
+
     # XDG_CURRENT_DESKTOP
-    dt = { "LXDE" : "lxde", "GNOME" : "gnome"}
+    dt = {"LXDE": "lxde", "GNOME": "gnome"}
     if "XDG_CURRENT_DESKTOP" in evars:
         val = evars["XDG_CURRENT_DESKTOP"]
         if val in dt:
             return dt[val]
-    
+
     # Environment variables that suggest the use of GNOME
-    for i in [ "GNOME_DESKTOP_SESSION_ID", "GNOME_KEYRING_CONTROL" ]:
+    for i in ["GNOME_DESKTOP_SESSION_ID", "GNOME_KEYRING_CONTROL"]:
         if i in evars:
             return "gnome"
-    
+
     # Environment variables that suggest the use of KDE
-    for i in [ "KDE_FULL_SESSION", "KDE_SESSION_VERSION", "KDE_SESSION_UID" ]:
+    for i in ["KDE_FULL_SESSION", "KDE_SESSION_VERSION", "KDE_SESSION_UID"]:
         if i in evars:
             return "kde"
-    
+
     # Environment variables that suggest the use of LXDE
-    for i in [ "_LXSESSION_PID" ]:
+    for i in ["_LXSESSION_PID"]:
         if i in evars:
             return "lxde"
-        
+
+
 def is_shell_extension_installed(extension):
     """
     Get whether a GNOME Shell extension is installed.
@@ -855,7 +865,8 @@ def is_shell_extension_installed(extension):
         if os.path.exists(extension_path):
             return True
     return False
-        
+
+
 def is_gnome_shell_extension_enabled(extension):
     """
     Get whether a GNOME Shell extension is enabled. This uses the
@@ -870,10 +881,11 @@ def is_gnome_shell_extension_enabled(extension):
         try:
             return extension in eval(text)
         except Exception as e:
-            logger.debug("Failed testing if extension is enabled.", exc_info = e)
-            
+            logger.debug("Failed testing if extension is enabled.", exc_info=e)
+
     return False
-        
+
+
 def set_gnome_shell_extension_enabled(extension, enabled):
     """
     Enable or disable a GNOME Shell extension is enabled. This uses the
@@ -889,7 +901,7 @@ def set_gnome_shell_extension_enabled(extension, enabled):
         try:
             extensions = eval(text)
         except Exception as e:
-            logger.debug('No gnome-shell extensions enabled.', exc_info = e)
+            logger.debug('No gnome-shell extensions enabled.', exc_info=e)
             # No extensions available, so init an empty array
             extensions = []
             pass
@@ -900,14 +912,15 @@ def set_gnome_shell_extension_enabled(extension, enabled):
             extensions.append(extension)
         s = ""
         for c in extensions:
-            if len(s) >0:
+            if len(s) > 0:
                 s += ","
             s += "'%s'" % c
         try:
             status, text = g15os.get_command_output("gsettings set org.gnome.shell enabled-extensions \"[%s]\"" % s)
         except Exception as e:
-            logger.debug("Failed to set extension enabled.", exc_info = e)
-            
+            logger.debug("Failed to set extension enabled.", exc_info=e)
+
+
 def browse(url):
     """
     Open the configured browser
@@ -916,13 +929,14 @@ def browse(url):
     url        -- URL
     """
     b = g15gconf.get_string_or_default(gconf.client_get_default(), \
-                                      "/apps/gnome15/browser", "default")
+                                       "/apps/gnome15/browser", "default")
     if not b in __browsers and not b == "default":
         logger.warning("Could not find browser %s, falling back to default", b)
         b = "default"
     if not b in __browsers:
         raise Exception("Could not find browser %s" % b)
     __browsers[b].browse(url)
+
 
 def add_browser(browser):
     """
@@ -936,59 +950,62 @@ def add_browser(browser):
     if not isinstance(browser, G15Browser):
         raise Exception("Not a G15Browser instance")
     __browsers[browser.browser_id] = browser
-        
+
+
 class G15Browser():
     def __init__(self, browser_id, name):
         self.name = name
         self.browser_id = browser_id
-    
+
     def browse(self, url):
         raise Exception("Not implemented")
+
 
 class G15DefaultBrowser(G15Browser):
     def __init__(self):
         G15Browser.__init__(self, "default", _("Default system browser"))
-    
+
     def browse(self, url):
         logger.info("xdg-open '%s'", url)
         subprocess.Popen(['xdg-open', url])
-        
+
+
 add_browser(G15DefaultBrowser())
-    
+
+
 class G15AbstractService(Thread):
-    
     def __init__(self):
-        Thread.__init__(self)        
+        Thread.__init__(self)
         # Start this thread, which runs the gobject loop. This is 
         # run first, and in a thread, as starting the Gnome15 will send
         # DBUS events (which are sent on the loop). 
         self.loop = gobject.MainLoop()
         self.start()
-        
+
     def start_loop(self):
         logger.info("Starting GLib loop")
         g15pythonlang.set_gobject_thread()
         try:
             self.loop.run()
         except Exception as e:
-            logger.debug('Error while running GLib loop', exc_info = e)
+            logger.debug('Error while running GLib loop', exc_info=e)
         logger.info("Exited GLib loop")
-        
+
     def start_service(self):
         raise Exception("Not implemented")
-        
-    def run(self):        
+
+    def run(self):
         # Now start the service, which will connect to all devices and
         # start their plugins
         self.start_service()
-                
-    
+
+
 class G15Screen():
     """
     Client side representation of a remote screen. Holds general details such
     as model name, UID and the pages that screen is currently showing.
     """
-    
+
     def __init__(self, path, device_model_fullname, device_uid):
         self.path = path
         self.device_model_fullname = device_model_fullname
@@ -996,48 +1013,49 @@ class G15Screen():
         self.items = {}
         self.message = None
 
+
 class G15DesktopComponent():
     """
     Helper class for implementing desktop components that can monitor and control some functions
     of the desktop service. It is used for Indicators, System tray icons and panel applets and
     deals with all the hard work of connecting to DBus and monitoring events.
     """
-    
+
     def __init__(self):
         self.screens = {}
         self.service = None
         self.start_service_item = None
         self.attention_item = None
-        self.pages = []   
+        self.pages = []
         self.lock = RLock()
         self.attention_messages = {}
         self.connected = False
-        
+
         # Connect to DBus and GConf
         self.conf_client = gconf.client_get_default()
         self.session_bus = dbus.SessionBus()
 
         # Enable monitoring of Gnome15 GConf settings
         self.conf_client.add_dir("/apps/gnome15", gconf.CLIENT_PRELOAD_NONE)
-        
+
         # Initialise desktop component
-        self.initialise_desktop_component()     
+        self.initialise_desktop_component()
         self.icons_changed()
-        
+
     def start_service(self):
         """
         Start the desktop component. An attempt will be made to connect to Gnome15 over 
         DBus. If this fails, the component should stay active until the service becomes
         available.
         """
-        
+
         # Try and connect to the service now
-        try :
-            self._connect()        
+        try:
+            self._connect()
         except dbus.exceptions.DBusException as e:
-            logger.debug("Error while starting the service.", exc_info = e)
+            logger.debug("Error while starting the service.", exc_info=e)
             self._disconnect()
-        
+
         # Start watching various events
         self.conf_client.notify_add("/apps/gnome15/indicate_only_on_error", self._indicator_options_changed)
         gtk_icon_theme = gtk.icon_theme_get_default()
@@ -1045,15 +1063,16 @@ class G15DesktopComponent():
 
         # Watch for Gnome15 starting and stopping
         self.session_bus.add_signal_receiver(self._name_owner_changed,
-                                     dbus_interface='org.freedesktop.DBus',
-                                     signal_name='NameOwnerChanged')  
-        
+                                             dbus_interface='org.freedesktop.DBus',
+                                             signal_name='NameOwnerChanged')
+
     """
     Pulic functions
     """
+
     def is_attention(self):
         return len(self.attention_messages) > 0
-    
+
     def get_icon_path(self, icon_name):
         """
         Helper function to get an icon path or it's name, given the name. 
@@ -1067,59 +1086,59 @@ class G15DesktopComponent():
             return path
         else:
             if not isinstance(icon_name, list):
-                icon_name = [ icon_name ]
+                icon_name = [icon_name]
             for i in icon_name:
                 p = g15icontools.get_icon_path(i, -1)
                 if p is not None:
                     return i
-             
-    def show_configuration(self, arg = None):
+
+    def show_configuration(self, arg=None):
         """
         Show the configuration user interface
-        """        
+        """
         g15os.run_script("g15-config")
-        
-    def stop_desktop_service(self, arg = None):
+
+    def stop_desktop_service(self, arg=None):
         """
         Stop the desktop service
-        """ 
-        self.session_bus.get_object('org.gnome15.Gnome15', '/org/gnome15/Service').Stop()   
-        
-    def start_desktop_service(self, arg = None):
+        """
+        self.session_bus.get_object('org.gnome15.Gnome15', '/org/gnome15/Service').Stop()
+
+    def start_desktop_service(self, arg=None):
         """
         Start the desktop service
-        """    
+        """
         g15os.run_script("g15-desktop-service", ["-f"])
-        
+
     def show_page(self, path):
         """
         Show a page, given its path
         """
         self.session_bus.get_object('org.gnome15.Gnome15', path).CycleTo()
-        
+
     def check_attention(self):
         """
         Check the current state of attention, either clearing it or setting it and displaying
         a new message
         """
         if len(self.attention_messages) == 0:
-            self.clear_attention()      
+            self.clear_attention()
         else:
             for i in self.attention_messages:
                 message = self.attention_messages[i]
                 self.attention(message)
                 break
-        
+
     """
     Functions that must be implemented
     """
-        
+
     def initialise_desktop_component(self):
         """
         This function is called during construction and should create initial desktop component
-        """ 
+        """
         raise Exception("Not implemented")
-    
+
     def rebuild_desktop_component(self):
         """
         This function is called every time the list of screens or pages changes 
@@ -1127,14 +1146,14 @@ class G15DesktopComponent():
         new state
         """
         raise Exception("Not implemented")
-    
+
     def clear_attention(self):
         """
         Clear any "Attention" state indicators
         """
         raise Exception("Not implemented")
-        
-    def attention(self, message = None):
+
+    def attention(self, message=None):
         """
         Display an "Attention" state indicator with a message
         
@@ -1142,23 +1161,24 @@ class G15DesktopComponent():
         message    --    message to display
         """
         raise Exception("Not implemented")
-    
+
     def icons_changed(self):
         """
         Invoked once a start up, and then whenever the desktop icon theme changes. Implementations
         should do whatever required to change any themed icons they are displayed
         """
         raise Exception("Not implemented")
-    
+
     def options_changed(self):
         """
         Invoked when any global desktop component options change.
         """
         raise Exception("Not implemented")
-        
+
     '''
     DBUS Event Callbacks
-    ''' 
+    '''
+
     def _name_owner_changed(self, name, old_owner, new_owner):
         if name == "org.gnome15.Gnome15":
             if old_owner == "":
@@ -1168,99 +1188,99 @@ class G15DesktopComponent():
                 if self.service != None:
                     self.connected = False
                     self._disconnect()
-        
-    def _page_created(self, page_path, page_title, path = None):
+
+    def _page_created(self, page_path, page_title, path=None):
         screen_path = path
         logger.debug("Page created (%s) %s = %s", screen_path, page_path, page_title)
-        page = self.session_bus.get_object('org.gnome15.Gnome15', page_path )
+        page = self.session_bus.get_object('org.gnome15.Gnome15', page_path)
         self.lock.acquire()
-        try :
+        try:
             if page.GetPriority() >= g15screen.PRI_LOW:
                 self._add_page(screen_path, page_path, page)
-        finally :
+        finally:
             self.lock.release()
-        
-    def _page_title_changed(self, page_path, title, path = None):
+
+    def _page_title_changed(self, page_path, title, path=None):
         screen_path = path
         self.lock.acquire()
-        try :
+        try:
             self.screens[screen_path].items[page_path] = title
             self.rebuild_desktop_component()
-        finally :
+        finally:
             self.lock.release()
-    
-    def _page_deleting(self, page_path, path = None):
+
+    def _page_deleting(self, page_path, path=None):
         screen_path = path
         self.lock.acquire()
         logger.debug("Destroying page (%s) %s", screen_path, page_path)
-        try :
+        try:
             items = self.screens[screen_path].items
             if page_path in items:
                 del items[page_path]
                 self.rebuild_desktop_component()
-        finally :
+        finally:
             self.lock.release()
-        
-    def _attention_cleared(self, path = None):
+
+    def _attention_cleared(self, path=None):
         screen_path = path
         if screen_path in self.attention_messages:
             del self.attention_messages[screen_path]
             self.rebuild_desktop_component()
-        
-    def _attention_requested(self, message = None, path = None):
+
+    def _attention_requested(self, message=None, path=None):
         screen_path = path
         if not screen_path in self.attention_messages:
             self.attention_messages[screen_path] = message
             self.rebuild_desktop_component()
-        
+
     """
     Private
     """
-            
+
     def _enable(self, widget, device):
         device.Enable()
-        
+
     def _disable(self, widget, device):
         device.Disable()
-        
+
     def _cycle_screens_option_changed(self, client, connection_id, entry, args):
         self.rebuild_desktop_component()
-        
+
     def _remove_screen(self, screen_path):
         print "*** removing %s from %s" % ( str(screen_path), str(self.screens))
         if screen_path in self.screens:
-            try :
+            try:
                 del self.screens[screen_path]
             except dbus.DBusException as e:
-                logger.debug("Error removing screen '%s'", screen_path, exc_info = e)
+                logger.debug("Error removing screen '%s'", screen_path, exc_info=e)
                 pass
         self.rebuild_desktop_component()
-        
+
     def _add_screen(self, screen_path):
         logger.debug("Screen added %s", screen_path)
         remote_screen = self.session_bus.get_object('org.gnome15.Gnome15', screen_path)
         ( device_uid, device_model_name, device_usb_id, device_model_fullname ) = remote_screen.GetDeviceInformation()
-        screen = G15Screen(screen_path, device_model_fullname, device_uid)        
+        screen = G15Screen(screen_path, device_model_fullname, device_uid)
         self.screens[screen_path] = screen
         if remote_screen.IsAttentionRequested():
             screen.message = remote_screen.GetMessage()
-        
+
     def _device_added(self, screen_path):
         self.rebuild_desktop_component()
-        
+
     def _device_removed(self, screen_path):
-        self.rebuild_desktop_component()                                
-        
+        self.rebuild_desktop_component()
+
     def _connect(self):
         logger.debug("Connecting")
         self._reset_attention()
         self.service = self.session_bus.get_object('org.gnome15.Gnome15', '/org/gnome15/Service')
         self.connected = True
         logger.debug("Connected")
-                
+
         # Load the initial screens
         self.lock.acquire()
-        try : 
+        try:
             for screen_path in self.service.GetScreens():
                 logger.debug("Adding %s", screen_path)
                 self._add_screen(screen_path)
@@ -1269,73 +1289,90 @@ class G15DesktopComponent():
                     page = self.session_bus.get_object('org.gnome15.Gnome15', page_path)
                     if page.GetPriority() >= g15screen.PRI_LOW and page.GetPriority() < g15screen.PRI_HIGH:
                         self._add_page(screen_path, page_path, page)
-        finally :
+        finally:
             self.lock.release()
-        
+
         # Listen for events
-        self.session_bus.add_signal_receiver(self._device_added, dbus_interface = "org.gnome15.Service", signal_name = "DeviceAdded")
-        self.session_bus.add_signal_receiver(self._device_removed, dbus_interface = "org.gnome15.Service", signal_name = "DeviceRemoved")
-        self.session_bus.add_signal_receiver(self._add_screen, dbus_interface = "org.gnome15.Service", signal_name = "ScreenAdded")
-        self.session_bus.add_signal_receiver(self._remove_screen, dbus_interface = "org.gnome15.Service", signal_name = "ScreenRemoved")
-        self.session_bus.add_signal_receiver(self._page_created, dbus_interface = "org.gnome15.Screen", signal_name = "PageCreated",  path_keyword = 'path')
-        self.session_bus.add_signal_receiver(self._page_title_changed, dbus_interface = "org.gnome15.Screen", signal_name = "PageTitleChanged",  path_keyword = 'path')
-        self.session_bus.add_signal_receiver(self._page_deleting, dbus_interface = "org.gnome15.Screen", signal_name = "PageDeleting",  path_keyword = 'path')
-        self.session_bus.add_signal_receiver(self._attention_requested, dbus_interface = "org.gnome15.Screen", signal_name = "AttentionRequested",  path_keyword = 'path')
-        self.session_bus.add_signal_receiver(self._attention_cleared, dbus_interface = "org.gnome15.Screen", signal_name = "AttentionCleared",  path_keyword = 'path')
-            
+        self.session_bus.add_signal_receiver(self._device_added, dbus_interface="org.gnome15.Service",
+                                             signal_name="DeviceAdded")
+        self.session_bus.add_signal_receiver(self._device_removed, dbus_interface="org.gnome15.Service",
+                                             signal_name="DeviceRemoved")
+        self.session_bus.add_signal_receiver(self._add_screen, dbus_interface="org.gnome15.Service",
+                                             signal_name="ScreenAdded")
+        self.session_bus.add_signal_receiver(self._remove_screen, dbus_interface="org.gnome15.Service",
+                                             signal_name="ScreenRemoved")
+        self.session_bus.add_signal_receiver(self._page_created, dbus_interface="org.gnome15.Screen",
+                                             signal_name="PageCreated", path_keyword='path')
+        self.session_bus.add_signal_receiver(self._page_title_changed, dbus_interface="org.gnome15.Screen",
+                                             signal_name="PageTitleChanged", path_keyword='path')
+        self.session_bus.add_signal_receiver(self._page_deleting, dbus_interface="org.gnome15.Screen",
+                                             signal_name="PageDeleting", path_keyword='path')
+        self.session_bus.add_signal_receiver(self._attention_requested, dbus_interface="org.gnome15.Screen",
+                                             signal_name="AttentionRequested", path_keyword='path')
+        self.session_bus.add_signal_receiver(self._attention_cleared, dbus_interface="org.gnome15.Screen",
+                                             signal_name="AttentionCleared", path_keyword='path')
+
         # We are now connected, so remove the start service menu item and allow cycling
         self.rebuild_desktop_component()
-        
+
     def _disconnect(self):
-        logger.debug("Disconnecting")                  
-        self.session_bus.remove_signal_receiver(self._device_added, dbus_interface = "org.gnome15.Service", signal_name = "DeviceAdded")
-        self.session_bus.remove_signal_receiver(self._device_removed, dbus_interface = "org.gnome15.Service", signal_name = "DeviceRemoved")
-        self.session_bus.remove_signal_receiver(self._add_screen, dbus_interface = "org.gnome15.Service", signal_name = "ScreenAdded")
-        self.session_bus.remove_signal_receiver(self._remove_screen, dbus_interface = "org.gnome15.Service", signal_name = "ScreenRemoved")
-        self.session_bus.remove_signal_receiver(self._page_created, dbus_interface = "org.gnome15.Screen", signal_name = "PageCreated")
-        self.session_bus.remove_signal_receiver(self._page_title_changed, dbus_interface = "org.gnome15.Screen", signal_name = "PageTitleChanged")
-        self.session_bus.remove_signal_receiver(self._page_deleting, dbus_interface = "org.gnome15.Screen", signal_name = "PageDeleting")
-        self.session_bus.remove_signal_receiver(self._attention_requested, dbus_interface = "org.gnome15.Screen", signal_name = "AttentionRequested")
-        self.session_bus.remove_signal_receiver(self._attention_cleared, dbus_interface = "org.gnome15.Screen", signal_name = "AttentionCleared")
-             
+        logger.debug("Disconnecting")
+        self.session_bus.remove_signal_receiver(self._device_added, dbus_interface="org.gnome15.Service",
+                                                signal_name="DeviceAdded")
+        self.session_bus.remove_signal_receiver(self._device_removed, dbus_interface="org.gnome15.Service",
+                                                signal_name="DeviceRemoved")
+        self.session_bus.remove_signal_receiver(self._add_screen, dbus_interface="org.gnome15.Service",
+                                                signal_name="ScreenAdded")
+        self.session_bus.remove_signal_receiver(self._remove_screen, dbus_interface="org.gnome15.Service",
+                                                signal_name="ScreenRemoved")
+        self.session_bus.remove_signal_receiver(self._page_created, dbus_interface="org.gnome15.Screen",
+                                                signal_name="PageCreated")
+        self.session_bus.remove_signal_receiver(self._page_title_changed, dbus_interface="org.gnome15.Screen",
+                                                signal_name="PageTitleChanged")
+        self.session_bus.remove_signal_receiver(self._page_deleting, dbus_interface="org.gnome15.Screen",
+                                                signal_name="PageDeleting")
+        self.session_bus.remove_signal_receiver(self._attention_requested, dbus_interface="org.gnome15.Screen",
+                                                signal_name="AttentionRequested")
+        self.session_bus.remove_signal_receiver(self._attention_cleared, dbus_interface="org.gnome15.Screen",
+                                                signal_name="AttentionCleared")
+
         if self.service != None and self.connected:
             for screen_path in dict(self.screens):
                 self._remove_screen(screen_path)
-        
+
         self._reset_attention()
         self._attention_requested("service", "g15-desktop-service is not running.")
-            
-        self.service = None  
-        self.connected = False 
-        self.rebuild_desktop_component()      
-        
+
+        self.service = None
+        self.connected = False
+        self.rebuild_desktop_component()
+
     def _reset_attention(self):
         self.attention_messages = {}
         self.rebuild_desktop_component()
-            
+
     def _add_page(self, screen_path, page_path, page):
         logger.debug("Adding page %s to %s", page_path, screen_path)
         items = self.screens[screen_path].items
         if not page_path in items:
             items[page_path] = page.GetTitle()
             self.rebuild_desktop_component()
-        
+
     def _indicator_options_changed(self, client, connection_id, entry, args):
         self.options_changed()
-    
+
     def _theme_changed(self, theme):
         self.icons_changed()
-        
-        
+
+
 class G15GtkMenuPanelComponent(G15DesktopComponent):
-    
     def __init__(self):
         self.screen_number = 0
         self.devices = []
         self.notify_message = None
         G15DesktopComponent.__init__(self)
-        
-    def about_info(self, widget):     
+
+    def about_info(self, widget):
         about = gtk.AboutDialog()
         about.set_name("Gnome15")
         about.set_version(g15globals.version)
@@ -1346,19 +1383,19 @@ class G15GtkMenuPanelComponent(G15DesktopComponent):
         about.set_comments(_("Desktop integration for Logitech 'G' keyboards."))
         about.run()
         about.hide()
-        
+
     def scroll_event(self, widget, event):
-        
+
         direction = event.direction
         if direction == gtk.gdk.SCROLL_UP:
             screen = self._get_active_screen_object()
             self._close_notify_message()
-            screen.ClearPopup() 
+            screen.ClearPopup()
             screen.Cycle(1)
         elif direction == gtk.gdk.SCROLL_DOWN:
             screen = self._get_active_screen_object()
             self._close_notify_message()
-            screen.ClearPopup() 
+            screen.ClearPopup()
             screen.Cycle(-1)
         else:
             """
@@ -1374,66 +1411,69 @@ class G15GtkMenuPanelComponent(G15DesktopComponent):
                         self.screen_number = 0
                     else:
                         self.screen_number += 1
-                        
+
                     self._set_active_screen_number()
                 else:
                     self._get_active_screen_object().CycleKeyboard(1)
-            
+
     def rebuild_desktop_component(self):
         logger.debug("Removing old menu items")
         for item in self.last_items:
             item.get_parent().remove(item)
             item.destroy()
-            
+
         self.last_items = []
         i = 0
-        
+
         # Remove the notify handles used for the previous cycle components
         logger.debug("Removing old notify handles")
         for h in self.notify_handles:
             self.conf_client.notify_remove(h)
         self.notify_handles = []
-        
+
         logger.debug("Building new menu")
         if self.service and self.connected:
-            
+
             item = gtk.MenuItem(_("Stop Desktop Service"))
             item.connect("activate", self.stop_desktop_service)
             self.add_service_item(item)
             self.add_service_item(gtk.MenuItem())
-        
+
             try:
                 devices = self.service.GetDevices()
                 for device_path in devices:
                     remote_device = self.session_bus.get_object('org.gnome15.Gnome15', device_path)
                     screen_path = remote_device.GetScreen()
-                    
+
                     screen = self.screens[screen_path] if len(screen_path) > 0 and screen_path in self.screens else None
-                    
+
                     if screen:
                         if i > 0:
                             logger.debug("Adding separator")
                             self._append_item(gtk.MenuItem())
                         # Disable
                         if len(devices) > 1:
-                            item = gtk.MenuItem("Disable %s"  % screen.device_model_fullname)
+                            item = gtk.MenuItem("Disable %s" % screen.device_model_fullname)
                             item.connect("activate", self._disable, remote_device)
                             self.add_service_item(item)
-                        
+
                         # Cycle screens
                         item = gtk.CheckMenuItem(_("Cycle screens automatically"))
-                        item.set_active(g15gconf.get_bool_or_default(self.conf_client, "/apps/gnome15/%s/cycle_screens" % screen.device_uid, True))
-                        self.notify_handles.append(self.conf_client.notify_add("/apps/gnome15/%s/cycle_screens" % screen.device_uid, self._cycle_screens_option_changed))
+                        item.set_active(g15gconf.get_bool_or_default(self.conf_client,
+                                                                     "/apps/gnome15/%s/cycle_screens" % screen.device_uid,
+                                                                     True))
+                        self.notify_handles.append(
+                            self.conf_client.notify_add("/apps/gnome15/%s/cycle_screens" % screen.device_uid,
+                                                        self._cycle_screens_option_changed))
                         item.connect("toggled", self._cycle_screens_changed, screen.device_uid)
                         self._append_item(item)
-                        
+
                         # Alert message            
                         if screen.message:
                             self._append_item(gtk.MenuItem(screen.message))
-                        
+
                         logger.debug("Adding items")
-                        
-                        
+
                         sorted_x = sorted(screen.items.iteritems(), key=operator.itemgetter(1))
                         for item_key, text in sorted_x:
                             logger.debug("Adding item %s = %s ", item_key, text)
@@ -1448,10 +1488,10 @@ class G15GtkMenuPanelComponent(G15DesktopComponent):
                             self.add_service_item(item)
                     i += 1
             except Exception as e:
-                logger.debug("Failed to find devices, service probably stopped.", exc_info = e)
+                logger.debug("Failed to find devices, service probably stopped.", exc_info=e)
                 self.connected = False
                 self.rebuild_desktop_component()
-                
+
             self.devices = devices
         else:
             self.devices = []
@@ -1459,82 +1499,93 @@ class G15GtkMenuPanelComponent(G15DesktopComponent):
 
         self.menu.show_all()
         self.check_attention()
-        
+
     def add_start_desktop_service(self):
         item = gtk.MenuItem(_("Start Desktop Service"))
         item.connect("activate", self.start_desktop_service)
         self.add_service_item(item)
-        
+
     def add_service_item(self, item):
         self._append_item(item)
-        
+
     def initialise_desktop_component(self):
-        
+
         self.last_items = []
         self.start_service_item = None
         self.attention_item = None
         self.notify_handles = []
-        
+
         # Indicator menu
         self.menu = gtk.Menu()
         self.create_component()
         self.menu.show_all()
-        
+
     def create_component(self):
         raise Exception("Not implemented")
-        
-    def remove_attention_menu_item(self):              
+
+    def remove_attention_menu_item(self):
         if self.attention_item != None:
             self.menu.remove(self.attention_item)
             self.attention_item.destroy()
             self.menu.show_all()
             self.attention_item = None
-        
+
     def options_changed(self):
         self.check_attention()
-        
+
     """
     Private
     """
-        
-    def _get_active_screen_object(self):        
+
+    def _get_active_screen_object(self):
         screen = list(self.screens.values())[self.screen_number]
         return self.session_bus.get_object('org.gnome15.Gnome15', screen.path)
-                
+
     def _set_active_screen_number(self):
         self._close_notify_message()
         screen = list(self.screens.values())[self.screen_number]
-        body = _("%s is now the active keyboard. Use mouse wheel up and down to cycle screens on this device") % screen.device_model_fullname
-        self.notify_message = g15notify.notify(screen.device_model_fullname, body, "preferences-desktop-keyboard-shortcuts")
-        
+        body = _(
+            "%s is now the active keyboard. Use mouse wheel up and down to cycle screens on this device") % screen.device_model_fullname
+        self.notify_message = g15notify.notify(screen.device_model_fullname, body,
+                                               "preferences-desktop-keyboard-shortcuts")
+
     def _close_notify_message(self):
         if self.notify_message is not None:
             try:
                 self.notify_message.close()
             except Exception as e:
-                logger.debug("Failed to close message.", exc_info = e)
+                logger.debug("Failed to close message.", exc_info=e)
             self.notify_message = None
-       
-    def _append_item(self, item, menu = None):
+
+    def _append_item(self, item, menu=None):
         self.last_items.append(item)
         if menu is None:
             menu = self.menu
         menu.append(item)
-        
-    def _show_page(self,event, page_path):
-        self.show_page(page_path)            
-        
+
+    def _show_page(self, event, page_path):
+        self.show_page(page_path)
+
     def _cycle_screens_changed(self, widget, device_uid):
         self.conf_client.set_bool("/apps/gnome15/%s/cycle_screens" % device_uid, widget.get_active())
-        
+
+
 if __name__ == "__main__":
-    print "g15-systemtray installed = %s, enabled = %s" % ( is_desktop_application_installed("g15-systemtray"), is_autostart_application("g15-systemtray") )
-    print "g15-desktop-service installed = %s, enabled = %s" % ( is_desktop_application_installed("g15-desktop-service"), is_autostart_application("g15-desktop-service") )
-    print "g15-indicator installed = %s, enabled = %s" % ( is_desktop_application_installed("g15-indicator"), is_autostart_application("g15-indicator") )
-    print "dropbox installed = %s, enabled = %s" % ( is_desktop_application_installed("dropbox"), is_autostart_application("dropbox") )
-    print "xdropbox installed = %s, enabled = %s" % ( is_desktop_application_installed("xdropbox"), is_autostart_application("xdropbox") )
-    print "nepomukserver installed = %s, enabled = %s" % ( is_desktop_application_installed("nepomukserver"), is_autostart_application("nepomukserver") )
+    print "g15-systemtray installed = %s, enabled = %s" % (
+    is_desktop_application_installed("g15-systemtray"), is_autostart_application("g15-systemtray") )
+    print "g15-desktop-service installed = %s, enabled = %s" % (
+    is_desktop_application_installed("g15-desktop-service"), is_autostart_application("g15-desktop-service") )
+    print "g15-indicator installed = %s, enabled = %s" % (
+    is_desktop_application_installed("g15-indicator"), is_autostart_application("g15-indicator") )
+    print "dropbox installed = %s, enabled = %s" % (
+    is_desktop_application_installed("dropbox"), is_autostart_application("dropbox") )
+    print "xdropbox installed = %s, enabled = %s" % (
+    is_desktop_application_installed("xdropbox"), is_autostart_application("xdropbox") )
+    print "nepomukserver installed = %s, enabled = %s" % (
+    is_desktop_application_installed("nepomukserver"), is_autostart_application("nepomukserver") )
     set_autostart_application("g15-indicator", False)
-    print "g15-indicator installed = %s, enabled = %s" % ( is_desktop_application_installed("g15-indicator"), is_autostart_application("g15-indicator") )
+    print "g15-indicator installed = %s, enabled = %s" % (
+    is_desktop_application_installed("g15-indicator"), is_autostart_application("g15-indicator") )
     set_autostart_application("g15-indicator", True)
-    print "g15-indicator installed = %s, enabled = %s" % ( is_desktop_application_installed("g15-indicator"), is_autostart_application("g15-indicator") )
+    print "g15-indicator installed = %s, enabled = %s" % (
+    is_desktop_application_installed("g15-indicator"), is_autostart_application("g15-indicator") )

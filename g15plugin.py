@@ -1,4 +1,4 @@
-#  Gnome15 - Suite of tools for the Logitech G series keyboards and headsets
+# Gnome15 - Suite of tools for the Logitech G series keyboards and headsets
 #  Copyright (C) 2011 Brett Smith <tanktarta@blueyonder.co.uk>
 #
 #  This program is free software: you can redistribute it and/or modify
@@ -13,7 +13,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
- 
+
 import dbus
 import util.g15scheduler as g15scheduler
 import util.g15cairo as g15cairo
@@ -23,11 +23,12 @@ import g15screen
 import sys
 import gobject
 
+
 class G15Plugin():
-    
     """
     Generic base plugin class
     """
+
     def __init__(self, gconf_client, gconf_key, screen):
         """
         Constructor
@@ -42,7 +43,7 @@ class G15Plugin():
         self.gconf_key = gconf_key
         self.active = False
         self.__notify_handlers = []
-            
+
     def create_theme(self):
         """
         Create a theme, using the currently selected theme for this plugin
@@ -58,8 +59,8 @@ class G15Plugin():
             new_theme = g15theme.G15Theme(self)
         new_theme.plugin = self
         return new_theme
-        
-    def watch(self, key, callback):   
+
+    def watch(self, key, callback):
         """
         Watch for gconf changes for this plugin on a particular sub-key, calling
         the callback when the value changes. All watches will be removed when
@@ -79,29 +80,30 @@ class G15Plugin():
         else:
             k = "%s/%s" % (self.gconf_key, key) if key is not None else self.gconf_key
         self.__notify_handlers.append(self.gconf_client.notify_add(k, callback))
-        
+
     def activate(self):
         self.active = True
         self.watch("theme", self._reactivate)
-               
+
     def deactivate(self):
         for h in self.__notify_handlers:
             self.gconf_client.notify_remove(h);
         self.active = False
-        
+
     def destroy(self):
         pass
-            
+
     def _reactivate(self, client, connection_id, entry, args):
         self.deactivate()
         self.activate()
-        
+
+
 class G15PagePlugin(G15Plugin):
-    
     """
     Generic base plugin for plugins that want to contribute a page (most plugins
     will extend this in some way)
     """
+
     def __init__(self, gconf_client, gconf_key, screen, icon, page_id, title):
         """
         Constructor
@@ -122,7 +124,7 @@ class G15PagePlugin(G15Plugin):
         self.page = None
         self.thumb_icon = g15cairo.load_surface_from_file(self._icon_path)
         self.add_page_on_activate = True
-        
+
     def activate(self):
         G15Plugin.activate(self)
         self.page = self.create_page()
@@ -130,22 +132,22 @@ class G15PagePlugin(G15Plugin):
         if self.add_page_on_activate:
             self.screen.add_page(self.page)
             self.screen.redraw(self.page)
-               
+
     def deactivate(self):
         if self.page is not None:
             self.screen.del_page(self.page)
             self.page = None
         G15Plugin.deactivate(self)
-        
+
     def create_page(self):
-        return g15theme.G15Page(self.page_id, self.screen, 
-                                     title = self._title, theme = self.create_theme(),
-                                     thumbnail_painter = self._paint_thumbnail,
-                                     theme_properties_callback = self.get_theme_properties,
-                                     theme_properties_attributes = self.get_theme_attributes,
-                                     painter = self._paint,
-                                     originating_plugin = self)
-        
+        return g15theme.G15Page(self.page_id, self.screen,
+                                title=self._title, theme=self.create_theme(),
+                                thumbnail_painter=self._paint_thumbnail,
+                                theme_properties_callback=self.get_theme_properties,
+                                theme_properties_attributes=self.get_theme_attributes,
+                                painter=self._paint,
+                                originating_plugin=self)
+
     def populate_page(self):
         """
         Populate page. Subclasses may override to create or configure
@@ -169,32 +171,32 @@ class G15PagePlugin(G15Plugin):
         properties["title"] = self._title
         properties["alt_title"] = ""
         return properties
-    
+
     def reload_theme(self):
         """
         Reload the current theme
         """
         self.page.set_theme(self.create_theme())
-    
+
     def _paint_thumbnail(self, canvas, allocated_size, horizontal):
         if self.page != None and self.thumb_icon != None and self.screen.driver.get_bpp() == 16:
             return g15cairo.paint_thumbnail_image(allocated_size, self.thumb_icon, canvas)
-    
+
     def _paint_panel(self, canvas, allocated_size, horizontal):
         pass
-    
+
     def _paint(self, canvas):
         pass
-        
+
+
 class G15RefreshingPlugin(G15PagePlugin):
-    
     """
     Base plugin class that may be used for plugins that refresh at set intervals. This
     abstract class will take care of disabling the refresh while the page is not
     visible 
     """
-    
-    def __init__(self, gconf_client, gconf_key, screen, icon, page_id, title, refresh_interval = 1.0):
+
+    def __init__(self, gconf_client, gconf_key, screen, icon, page_id, title, refresh_interval=1.0):
         """
         Constructor
         
@@ -212,18 +214,18 @@ class G15RefreshingPlugin(G15PagePlugin):
         self.timer = None
         self.schedule_on_gobject = False
         self.only_refresh_when_visible = True
-    
+
     def create_page(self):
         return g15theme.G15Page(self.page_id,
                                 self.screen,
-                                title = self._title,
-                                theme = self.create_theme(),
-                                thumbnail_painter = self._paint_thumbnail,
-                                painter = self._paint,
-                                panel_painter = self._paint_panel,
-                                theme_properties_callback = self.get_theme_properties,
-                                originating_plugin = self)
-    
+                                title=self._title,
+                                theme=self.create_theme(),
+                                thumbnail_painter=self._paint_thumbnail,
+                                painter=self._paint,
+                                panel_painter=self._paint_panel,
+                                theme_properties_callback=self.get_theme_properties,
+                                originating_plugin=self)
+
     def activate(self):
         G15PagePlugin.activate(self)
         self._schedule_refresh()
@@ -231,25 +233,25 @@ class G15RefreshingPlugin(G15PagePlugin):
     def deactivate(self):
         self._cancel_refresh()
         G15PagePlugin.deactivate(self)
-        
+
     def populate_page(self):
         G15PagePlugin.populate_page(self)
         self.refresh()
-    
+
     def refresh(self):
         """
         Sub-classes should implement and perform the recurring actions. There is no need to 
         to redraw the page, it is done automatically.
-        """        
+        """
         pass
-    
+
     def get_next_tick(self):
         """
         Get how long to wait before the next refresh. By default this uses the 'refresh
         interval', but sub-classes may override to provide custom tick logic.
         """
         return self.refresh_interval
-    
+
     def do_refresh(self):
         """
         Programatically refresh. The timer will be reset
@@ -257,15 +259,15 @@ class G15RefreshingPlugin(G15PagePlugin):
         self._cancel_refresh()
         self._do_refresh()
         self._schedule_refresh()
-        
-    
+
+
     ''' Private
     '''
-        
+
     def _reschedule_refresh(self):
         self._cancel_refresh()
         self._schedule_refresh()
-        
+
     def _cancel_refresh(self):
         if self.timer != None:
             if isinstance(self.timer, int):
@@ -273,7 +275,7 @@ class G15RefreshingPlugin(G15PagePlugin):
             else:
                 self.timer.cancel()
             self.timer = None
-        
+
     def _schedule_refresh(self):
         if self.schedule_on_gobject:
             self.timer = gobject.timeout_add(int(self.get_next_tick() * 1000), self._refresh)
@@ -281,7 +283,7 @@ class G15RefreshingPlugin(G15PagePlugin):
             self.timer = g15scheduler.schedule("%s-Redraw" % self.page_id,
                                                self.get_next_tick(),
                                                self._refresh)
-        
+
     def _refresh(self):
         if self.page and (not self.only_refresh_when_visible or self.screen.is_visible(self.page)):
             self._do_refresh()
@@ -290,14 +292,15 @@ class G15RefreshingPlugin(G15PagePlugin):
     def _do_refresh(self):
         self.refresh()
         self.screen.redraw(self.page)
-    
+
+
 class G15MenuPlugin(G15Plugin):
     '''
     Base plugin class that may be used when the plugin just displays a single
     menu style component.
     '''
-    
-    def __init__(self, gconf_client, gconf_key, screen, menu_title_icon, page_id, title, show_on_activate = True):
+
+    def __init__(self, gconf_client, gconf_key, screen, menu_title_icon, page_id, title, show_on_activate=True):
         """
         Constructor
         
@@ -310,7 +313,7 @@ class G15MenuPlugin(G15Plugin):
         refresh_interval        - how often to refresh the page
         """
         G15Plugin.__init__(self, gconf_client, gconf_key, screen)
-        
+
         self.page_id = page_id
         self.page = None
         self.hidden = False
@@ -319,19 +322,19 @@ class G15MenuPlugin(G15Plugin):
         self._title = title
         self._show_on_activate = show_on_activate
         self.set_icon(menu_title_icon)
-        
+
     def set_icon(self, icon):
         self._icon_path = g15icontools.get_icon_path(icon)
         self.thumb_icon = g15cairo.load_surface_from_file(self._icon_path)
 
-    def activate(self):         
-        G15Plugin.activate(self) 
-        self.reload_theme() 
+    def activate(self):
+        G15Plugin.activate(self)
+        self.reload_theme()
         if self._show_on_activate:
             self.show_menu()
-    
+
     def deactivate(self):
-        G15Plugin.deactivate(self) 
+        G15Plugin.deactivate(self)
         if self.page != None:
             self.hide_menu()
 
@@ -352,74 +355,75 @@ class G15MenuPlugin(G15Plugin):
         properties["alt_title"] = ""
         properties["no_items"] = self.menu.get_child_count() == 0
         return properties
-    
+
     def reload_theme(self):
         """
         Reload the SVG theme and configure it
         """
         self.theme = g15theme.G15Theme(self, "menu-screen")
-        
-    def show_menu(self): 
-         
+
+    def show_menu(self):
+
         """
         Create the component tree for the menu page and draw it
-        """  
+        """
         if not self.active:
             return
-            
+
         self.page = self.create_page()
         self.menu = self.create_menu()
         self.page.set_focused_component(self.menu)
         self.menu.focusable = True
         self.page.on_deleted = self.page_deleted
         self.menu.set_focused(True)
-        self.page.add_child(self.menu)  
+        self.page.add_child(self.menu)
         self.page.add_child(g15theme.MenuScrollbar("viewScrollbar", self.menu))
         self.load_menu_items()
         self.add_to_screen()
-        
+
     def add_to_screen(self):
         """
         Add the page to the screen
         """
-        self.screen.add_page(self.page)     
+        self.screen.add_page(self.page)
         self.screen.redraw(self.page)
-        
+
     def create_page(self):
         """
         Create the page. Subclasses may override.
         """
-        return g15theme.G15Page(self.page_id, self.screen, priority=g15screen.PRI_NORMAL, title = self._title, theme = self.theme, \
-                                     theme_properties_callback = self.get_theme_properties,
-                                     thumbnail_painter = self.paint_thumbnail,
-                                     originating_plugin = self)
-        
+        return g15theme.G15Page(self.page_id, self.screen, priority=g15screen.PRI_NORMAL, title=self._title,
+                                theme=self.theme, \
+                                theme_properties_callback=self.get_theme_properties,
+                                thumbnail_painter=self.paint_thumbnail,
+                                originating_plugin=self)
+
     def page_deleted(self):
         """
         Invoked when the page is removed from the screen
         """
         self.page = None
-        
+
     def create_menu(self):
         """
         Create the menu component. Subclasses may override to create or configure
         different components.
         """
         return g15theme.Menu("menu")
-    
+
     def hide_menu(self):
         """
         Delete the page
-        """     
+        """
         self.screen.del_page(self.page)
         self.page = None
-        
+
     def load_menu_items(self):
         """
         Subclasses should override to set the initial menu items
         """
         pass
-    
+
     def paint_thumbnail(self, canvas, allocated_size, horizontal):
         if self.page != None and self.thumb_icon != None and self.screen.driver.get_bpp() == 16:
             return g15cairo.paint_thumbnail_image(allocated_size, self.thumb_icon, canvas)

@@ -1,4 +1,4 @@
-#  Gnome15 - Suite of tools for the Logitech G series keyboards and headsets
+# Gnome15 - Suite of tools for the Logitech G series keyboards and headsets
 #  Copyright (C) 2010 Brett Smith <tanktarta@blueyonder.co.uk>
 #  Copyright (C) 2013 Nuno Araujo <nuno.araujo@russo79.com>
 #
@@ -30,6 +30,7 @@ import base64
 
 # Logging
 import logging
+
 logger = logging.getLogger(__name__)
 
 from cStringIO import StringIO
@@ -41,11 +42,12 @@ gtk_icon_theme = gtk.icon_theme_get_default()
 if g15globals.dev:
     gtk_icon_theme.prepend_search_path(g15globals.icons_dir)
 
-def local_icon_or_default(icon_name, size = 128):
+
+def local_icon_or_default(icon_name, size=128):
     return get_icon_path(icon_name, size)
 
-def get_embedded_image_url(path):
 
+def get_embedded_image_url(path):
     file_str = StringIO()
     try:
         img_data = StringIO()
@@ -80,15 +82,16 @@ def get_embedded_image_url(path):
     finally:
         file_str.close()
 
-def get_icon_path(icon = None, size = 128, warning = True, include_missing = True):
+
+def get_icon_path(icon=None, size=128, warning=True, include_missing=True):
     o_icon = icon
     if isinstance(icon, list):
         for i in icon:
-            p = get_icon_path(i, size, warning = False, include_missing = False)
+            p = get_icon_path(i, size, warning=False, include_missing=False)
             if p != None:
                 return p
         logger.warning("Icon %s (%d) not found", str(icon), size)
-        if include_missing and not icon in [ "image-missing", "gtk-missing-image" ]:
+        if include_missing and not icon in ["image-missing", "gtk-missing-image"]:
             return get_icon_path(["image-missing", "gtk-missing-image"], size, warning)
     else:
         if icon != None:
@@ -99,7 +102,7 @@ def get_icon_path(icon = None, size = 128, warning = True, include_missing = Tru
             fn = icon.get_filename()
             if os.path.isfile(fn):
                 return fn
-            elif include_missing and not icon in [ "image-missing", "gtk-missing-image" ]:
+            elif include_missing and not icon in ["image-missing", "gtk-missing-image"]:
                 if warning:
                     logger.warning("Icon %s (%d) not found, using missing image", o_icon, size)
                 return get_icon_path(["image-missing", "gtk-missing-image"], size, warning)
@@ -109,29 +112,32 @@ def get_icon_path(icon = None, size = 128, warning = True, include_missing = Tru
             else:
                 if warning:
                     logger.warning("Icon %s (%d) not found", o_icon, size)
-                if include_missing and not icon in [ "image-missing", "gtk-missing-image" ]:
+                if include_missing and not icon in ["image-missing", "gtk-missing-image"]:
                     return get_icon_path(["image-missing", "gtk-missing-image"], size, warning)
 
-def get_app_icon(gconf_client, icon, size = 128):
+
+def get_app_icon(gconf_client, icon, size=128):
     icon_path = get_icon_path(icon, size)
     if icon_path == None:
-        icon_path = os.path.join(g15globals.icons_dir,"hicolor", "scalable", "apps", "%s.svg" % icon)
+        icon_path = os.path.join(g15globals.icons_dir, "hicolor", "scalable", "apps", "%s.svg" % icon)
     return icon_path
 
-def get_icon(gconf_client, icon, size = None):
+
+def get_icon(gconf_client, icon, size=None):
     real_icon_file = get_icon_path(icon, size)
     if real_icon_file != None:
         if real_icon_file.endswith(".svg"):
             pixbuf = gtk.gdk.pixbuf_new_from_file(real_icon_file)
             scale = g15cairo.get_scale(size, (pixbuf.get_width(), pixbuf.get_height()))
             if scale != 1.0:
-                pixbuf = pixbuf.scale_simple(pixbuf.get_width() * scale, pixbuf.get_height() * scale, gtk.gdk.INTERP_BILINEAR)
+                pixbuf = pixbuf.scale_simple(pixbuf.get_width() * scale, pixbuf.get_height() * scale,
+                                             gtk.gdk.INTERP_BILINEAR)
             img = Image.fromstring("RGBA", (pixbuf.get_width(), pixbuf.get_height()), pixbuf.get_pixels())
         else:
             img = Image.open(real_icon_file)
             scale = g15cairo.get_scale(size, img.size)
             if scale != 1.0:
-                img = img.resize((img.size[0] * scale, img.size[1] * scale),Image.BILINEAR)
+                img = img.resize((img.size[0] * scale, img.size[1] * scale), Image.BILINEAR)
 
         return img
 

@@ -1,4 +1,4 @@
-#  Gnome15 - Suite of tools for the Logitech G series keyboards and headsets
+# Gnome15 - Suite of tools for the Logitech G series keyboards and headsets
 #  Copyright (C) 2011 Brett Smith <tanktarta@blueyonder.co.uk>
 #
 #  This program is free software: you can redistribute it and/or modify
@@ -61,7 +61,7 @@ stopped, or when Gnome15 itself is shutting down.
 or if Gnome15 itself is closing down. 
 
 """
- 
+
 import os.path
 import sys
 import g15globals
@@ -72,6 +72,7 @@ import threading
 
 # Logging
 import logging
+
 logger = logging.getLogger(__name__)
 
 imported_plugins = []
@@ -90,14 +91,15 @@ ACTIVATED = 4
 DEACTIVATING = 5
 DEACTIVATED = 6
 DESTROYING = 7
-            
+
+
 def list_plugin_dirs(path):
     """
     List all plugin directories in a given path.
     
     Keyword arguments:
     path -- path to look for plugins
-    """ 
+    """
     plugindirs = []
     if os.path.exists(path):
         for p_dir in os.listdir(path):
@@ -108,7 +110,8 @@ def list_plugin_dirs(path):
         logger.debug("Plugin path %s does not exist.", path)
     return plugindirs
 
-def get_extra_plugin_dirs():    
+
+def get_extra_plugin_dirs():
     """
     Get a list of all directories plugin directories may be found in. This
     will included any dynamically registered using the 
@@ -120,8 +123,9 @@ def get_extra_plugin_dirs():
     if "G15_PLUGINS" in os.environ:
         for p_dir in os.environ["G15_PLUGINS"].split(":"):
             plugindirs += list_plugin_dirs(p_dir)
-    return plugindirs 
-        
+    return plugindirs
+
+
 def get_module_for_id(module_id):
     """
     Get a plugin module given it's ID.
@@ -132,8 +136,9 @@ def get_module_for_id(module_id):
     for mod in imported_plugins:
         if mod.id == module_id:
             return mod
-        
-def get_supported_models(plugin_module):    
+
+
+def get_supported_models(plugin_module):
     """
     Get a list of models that a plugin supports. This takes into account
     the supported_models and unsupported_models attributes to provide a list
@@ -152,6 +157,7 @@ def get_supported_models(plugin_module):
             logger.debug("Tried to remove '%s' not in supported_models. Ignoring...", p)
     return supported_models
 
+
 def is_needs_network(plugin_module):
     """
     Get if the provided plugin_module instance requires the network to be available.
@@ -161,6 +167,7 @@ def is_needs_network(plugin_module):
     plugin_module -- plugin module instance
     """
     return getattr(plugin_module, 'needs_network', False)
+
 
 def is_default_enabled(plugin_module):
     """
@@ -173,6 +180,7 @@ def is_default_enabled(plugin_module):
     """
     return getattr(plugin_module, 'default_enabled', False)
 
+
 def is_global_plugin(plugin_module):
     """
     Get if the provided plugin_module instance should is a "Global Plugin".
@@ -181,6 +189,7 @@ def is_global_plugin(plugin_module):
     plugin_module -- plugin module instance
     """
     return getattr(plugin_module, 'global_plugin', False)
+
 
 def is_passive_plugin(plugin_module):
     """
@@ -192,7 +201,8 @@ def is_passive_plugin(plugin_module):
     plugin_module -- plugin module instance
     """
     return getattr(plugin_module, 'passive', False)
- 
+
+
 def get_actions(plugin_module, device):
     """
     Get a dictionary of all the "Actions" this plugin uses. The key is
@@ -214,7 +224,6 @@ def get_actions(plugin_module, device):
         return actions
 
 
-
 """
 Loads the python modules for all plugins for all known locations. This is done
 in two phases.
@@ -231,19 +240,19 @@ all_plugin_directories = get_extra_plugin_dirs() + \
                          list_plugin_dirs(os.path.join(g15globals.user_config_dir, "plugins")) + \
                          list_plugin_dirs(os.path.join(g15globals.user_data_dir, "plugins")) + \
                          list_plugin_dirs(g15globals.plugin_dir)
-            
+
 # Phase 1
 for plugindir in all_plugin_directories:
     if not plugindir in sys.path:
         sys.path.insert(0, plugindir)
-       
+
 # Phase 2
-for plugindir in all_plugin_directories: 
+for plugindir in all_plugin_directories:
     plugin_name = os.path.basename(plugindir)
     pluginfiles = [fname[:-3] for fname in os.listdir(plugindir) if fname == plugin_name + ".py"]
     if not plugindir in sys.path:
         sys.path.insert(0, plugindir)
-    try :
+    try:
         for mod in ([__import__(fname) for fname in pluginfiles]):
             imported_plugins.append(mod)
             # TODO - we need to be registering actions for a particular device
@@ -252,7 +261,7 @@ for plugindir in all_plugin_directories:
                 if not a in g15actions.actions:
                     g15actions.actions.append(a)
     except Exception as e:
-        logger.error("Failed to load plugin module %s.", plugindir, exc_info = e)
+        logger.error("Failed to load plugin module %s.", plugindir, exc_info=e)
 
 
 class G15Plugins():
@@ -263,7 +272,8 @@ class G15Plugins():
     In total there will be n+1 instances of this, where n is the number of
     connected and enabled devices.
     """
-    def __init__(self, screen, service=None, network_manager = None):
+
+    def __init__(self, screen, service=None, network_manager=None):
         """
         Create a new plugin manager either for the provided device (screen),
         or globally (when screen is None)
@@ -283,34 +293,34 @@ class G15Plugins():
         self.module_map = {}
         self.plugin_map = {}
         self.state = UNINITIALISED
-        
+
     def is_activated(self):
         """
         Get if the plugin manager is currently fully ACTIVATED.
         """
         return self.state == ACTIVATED
-        
+
     def is_started(self):
         """
         Get if the plugin manager is currently fully STARTED or in any ACTIVE
         state.
         """
         return self.is_in_active_state() or self.state == STARTED
-        
+
     def is_in_active_state(self):
         """
         Get if the plugin manager is currently in a state where it is either
         fully ACTIVATED, or partially activated (ACTIVATING, DEACTIVATING).
         """
-        return self.state in [ ACTIVATED, DEACTIVATING, ACTIVATING ]
-        
+        return self.state in [ACTIVATED, DEACTIVATING, ACTIVATING]
+
     def is_in_started_state(self):
         """
         Get if the plugin manager is currently in a state where it is either
         fully STARTED (or any activated state) or partially STARTED (STARTING, STOPPING)
         """
-        return self.is_in_active_state() or self.state in [ STARTED, STARTING, DESTROYING ]
-        
+        return self.is_in_active_state() or self.state in [STARTED, STARTING, DESTROYING]
+
     def has_plugin(self, module_id):
         """
         Get if the plugin manager contains a plugin install with the 
@@ -320,7 +330,7 @@ class G15Plugins():
         module_id -- plugin module ID to search for
         """
         return module_id in self.module_map
-    
+
     def get_plugin(self, module_id):
         """
         Get the plugin instance given the plugin module's ID
@@ -330,13 +340,13 @@ class G15Plugins():
         """
         if module_id in self.module_map:
             return self.module_map[module_id]
-    
+
     def start(self):
         """
         Start all plugins that are currently enabled.
         """
         self.lock.acquire()
-        try : 
+        try:
             self.state = STARTING
             self.started = []
             added = []
@@ -350,33 +360,34 @@ class G15Plugins():
                     key = "%s/enabled" % plugin_dir_key
                     self.conf_client.notify_add(key, self._plugin_changed)
                     if (self.screen is None and is_global_plugin(mod)) or \
-                       (self.screen is not None and not is_global_plugin(mod)):
-                        
+                            (self.screen is not None and not is_global_plugin(mod)):
+
                         # If first use, set the default enabled state
                         if self.conf_client.get(key) == None:
                             self.conf_client.set_bool(key, is_default_enabled(mod))
-                            
+
                         # Only actually activate if the plugin is not passive and the network
                         # is in the right state
-                        
+
                         if self.conf_client.get_bool(key) and \
-                          not is_passive_plugin(mod):
-                            try :
+                                not is_passive_plugin(mod):
+                            try:
                                 instance = self._create_instance(mod, plugin_dir_key)
-                                if self.screen is None or self.screen.driver.get_model_name() in get_supported_models(mod):
+                                if self.screen is None or self.screen.driver.get_model_name() in get_supported_models(
+                                        mod):
                                     self.started.append(instance)
                             except Exception as e:
                                 self.conf_client.set_bool(key, False)
-                                logger.error("Failed to load plugin %s.", mod.id, exc_info = e)
+                                logger.error("Failed to load plugin %s.", mod.id, exc_info=e)
             self.state = STARTED
         except Exception as a:
             self.state = UNINITIALISED
-            logger.debug("Error when starting plugins", exc_info = a)
-            raise a 
+            logger.debug("Error when starting plugins", exc_info=a)
+            raise a
         finally:
             self.lock.release()
         logger.info("Started plugin manager")
-    
+
     def handle_key(self, key, state, post=False):
         """
         Pass the provided key event to all plugins. For each key event, this
@@ -391,13 +402,13 @@ class G15Plugins():
             can_handle_keys = hasattr(plugin, 'handle_key')
             if can_handle_keys and plugin.handle_key(key, state, post):
                 logger.info("Plugin %s handled key %s (%d), %s",
-                        str(plugin),
-                        str(key),
-                        state,
-                        str(post))
-                return True 
+                            str(plugin),
+                            str(key),
+                            state,
+                            str(post))
+                return True
         return False
-    
+
     def activate(self, callback=None, plugin=None):
         """
         Activate all plugins that currently started.
@@ -411,38 +422,38 @@ class G15Plugins():
                             or None, the state of the plugin manager will also
                             be changed
         """
-        
+
         if plugin is None or isinstance(plugin, list):
             logger.info("Activating plugins")
             self.lock.acquire()
-            try :
+            try:
                 self.state = ACTIVATING
                 self.activated = []
                 idx = 0
                 for plugin in plugin if isinstance(plugin, list) else self.started:
                     mod = self.plugin_map[plugin]
-                    
+
                     # Only actually activate if the plugin is not passive and the network
                     # is in the right state
-                        
+
                     needs_net = is_needs_network(mod)
                     if not needs_net or ( needs_net and \
-                            self.network_manager.is_network_available() ):
+                                                  self.network_manager.is_network_available() ):
                         self._activate_instance(plugin, callback, idx)
-                        
-                    idx += 1           
+
+                    idx += 1
                 self.state = ACTIVATED
-            except Exception as e:           
+            except Exception as e:
                 self.state = STARTED
-                logger.debug("Error while activating plugin", exc_info = e)
-                raise e     
+                logger.debug("Error while activating plugin", exc_info=e)
+                raise e
             finally:
                 self.lock.release()
             logger.debug("Activated plugins")
         else:
             self._activate_instance(plugin, callback, 0)
-            
-    
+
+
     def deactivate(self, plugin=None):
         """
         De-activate plugins that are currently activated.
@@ -457,7 +468,7 @@ class G15Plugins():
         if plugin is None or isinstance(plugin, list):
             logger.info("De-activating plugins")
             self.lock.acquire()
-            try :
+            try:
                 self.state = DEACTIVATING
                 for plugin in plugin if isinstance(plugin, list) else list(self.activated):
                     self._deactivate_instance(plugin)
@@ -467,12 +478,12 @@ class G15Plugins():
             logger.info("De-activated plugins")
         else:
             self._deactivate_instance(plugin)
-    
+
     def destroy(self):
         """
         Destroy all plugins that are currently started.
         """
-        try :
+        try:
             self.state = DESTROYING
             for plugin in self.started:
                 self.state = DESTROYING
@@ -480,51 +491,52 @@ class G15Plugins():
                 plugin.destroy()
         finally:
             self.state = UNINITIALISED
-        
+
     '''
     Private
-    ''' 
+    '''
+
     def _deactivate_instance(self, plugin):
         mod = self.plugin_map[plugin]
         logger.debug("De-activating %s", mod.id)
         if not plugin in self.activated:
             raise Exception("%s is not activated" % mod.id)
-        try :
+        try:
             plugin.deactivate()
         except Exception as e:
-            logger.warning("Failed to deactive plugin properly.", exc_info = e)
-        finally:                    
+            logger.warning("Failed to deactive plugin properly.", exc_info=e)
+        finally:
             mod_id = self.plugin_map[plugin].id
             if mod_id in self.service.active_plugins:
                 del self.service.active_plugins[mod_id]
         self.activated.remove(plugin)
-        
+
     def _get_plugin_key(self, subkey=None):
         folder = self.screen.device.uid if self.screen is not None else "global"
         if subkey:
             return "/apps/gnome15/%s/plugins/%s" % (folder, subkey)
         else:
             return "/apps/gnome15/%s/plugins" % folder
-                
+
     def _plugin_changed(self, client, connection_id, entry, args):
         self.lock.acquire()
         if self.screen is not None:
             self.screen._check_active_plugins()
-        try : 
+        try:
             path = entry.key.split("/")
             plugin_id = path[5]
             now_enabled = entry.value.get_bool()
             plugin = get_module_for_id(plugin_id)
-            
+
             # Check network state, and prevent enable if not in right state
             needs_net = is_needs_network(plugin)
             if now_enabled and needs_net and not self.network_manager.is_network_available():
-                now_enabled = False 
-            
+                now_enabled = False
+
             instance = None
             if plugin_id in self.module_map:
                 instance = self.module_map[plugin_id]
-                                
+
             if not is_passive_plugin(plugin):
                 if now_enabled and instance == None:
                     instance = self._create_instance(plugin, self._get_plugin_key(plugin_id))
@@ -540,14 +552,14 @@ class G15Plugins():
                     instance.destroy()
         finally:
             self.lock.release()
-            
+
     def _activate_instance(self, instance, callback=None, idx=0):
-        mod = self.plugin_map[instance] 
+        mod = self.plugin_map[instance]
         logger.info("Activating %s", mod.id)
-        try :             
+        try:
             if self._is_single_instance(mod):
                 logger.info("%s may only be run once, checking if there is another instance", mod.id)
-                if  mod.id in self.service.active_plugins:
+                if mod.id in self.service.active_plugins:
                     raise Exception("Plugin may %s only run on one device at a time." % mod.id)
             if callback != None:
                 callback(idx, len(self.started), mod.name)
@@ -555,12 +567,12 @@ class G15Plugins():
             self.service.active_plugins[mod.id] = True
             self.activated.append(instance)
         except Exception as e:
-            logger.error("Failed to activate plugin %s.", mod.id, exc_info = e)
-            self.conf_client.set_bool(self._get_plugin_key("%s/enabled" % mod.id), False)              
-        
+            logger.error("Failed to activate plugin %s.", mod.id, exc_info=e)
+            self.conf_client.set_bool(self._get_plugin_key("%s/enabled" % mod.id), False)
+
     def _is_single_instance(self, module):
         return getattr(module, 'single_instance', False)
-            
+
     def _create_instance(self, module, key):
         logger.info("Loading %s", module.id)
         if self.screen is not None:
